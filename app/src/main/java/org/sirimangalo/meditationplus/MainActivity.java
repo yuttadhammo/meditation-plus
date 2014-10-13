@@ -2,12 +2,14 @@ package org.sirimangalo.meditationplus;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import android.app.Activity;
 import android.content.Context;
@@ -16,6 +18,7 @@ import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
@@ -25,6 +28,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
+import android.text.TextUtils;
 import android.util.JsonReader;
 import android.util.Log;
 import android.view.Gravity;
@@ -33,6 +37,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import org.apache.http.HttpEntity;
@@ -78,11 +85,18 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     private String loginToken;
     private ConnectivityManager cnnxManager;
 
+    private ListView chatList;
+    private ListView medList;
+    private TextView onlineList;
+
     HttpClient httpclient;
+    private Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        context = this;
 
         httpclient = new DefaultHttpClient();
 
@@ -91,6 +105,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         cnnxManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 
         setContentView(R.layout.activity_main);
+
+        onlineList = (TextView) findViewById(R.id.online);
 
         // Set up the action bar.
         final ActionBar actionBar = getSupportActionBar();
@@ -131,7 +147,9 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         if(loginToken.equals(""))
             showLogin();
         else {
-            doLogin();
+            username = prefs.getString("username","");
+            password = "";
+            doRefresh();
         }
 
     }
@@ -146,9 +164,22 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
         nvp.add(new BasicNameValuePair("username", username));
         nvp.add(new BasicNameValuePair("password", password));
+        nvp.add(new BasicNameValuePair("login-token", loginToken));
+        nvp.add(new BasicNameValuePair("submit", "Login"));
 
         PostTask pt = new PostTask();
         pt.execute(nvp);
+        Log.d(TAG, "Executing: login");
+    }
+
+    private void doRefresh() {
+        ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
+        nvp.add(new BasicNameValuePair("logged_user", username));
+        nvp.add(new BasicNameValuePair("submit", "Refresh"));
+
+        PostTask pt = new PostTask();
+        pt.execute(nvp);
+        Log.d(TAG, "Executing: refresh");
     }
 
 
@@ -355,7 +386,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         @Override
         protected  void onPreExecute()
         {
-
         }
 
         @Override
@@ -364,32 +394,196 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                 return;
 
             try {
+                //Log.d(TAG,"result:"+result);
                 JSONObject json = new JSONObject(result);
-                if(json.has("chats")) {
-                    populateChat(json.getJSONArray("chats"));
+                if(json.has("logged")) {
+                    populateOnline(json.getJSONArray("logged"));
+
                 }
-                if(json.has("meds")) {
-                    populateMeds(json.getJSONArray("meds"));
+                if(json.has("chat")) {
+                    populateChat(json.getJSONArray("chat"));
+                }
+                if(json.has("list")) {
+                    populateMeds(json.getJSONArray("list"));
                 }
                 if(json.has("login_token")) {
+                    loginToken = json.getString("login_token");
                     SharedPreferences.Editor editor = prefs.edit();
-                    editor.putString("login_token",json.getString("login_token"));
+                    editor.putString("login_token", loginToken);
                     editor.apply();
+                    doRefresh();
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+            CountDownTimer ct = new CountDownTimer(10000,10000) {
+                @Override
+                public void onTick(long l) {
 
+                }
+
+                @Override
+                public void onFinish() {
+                    doRefresh();
+                }
+            };
+            ct.start();
         }
 
 
     }
 
     private void populateChat(JSONArray chats) {
+        ArrayList<JSONObject> chatArray = new ArrayList<JSONObject>();
+        for(int i = 0; i < chats.length(); i++) {
+            try {
+                JSONObject chat = chats.getJSONObject(i);
+                chatArray.add(chat);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        chatList = (ListView) findViewById(R.id.chat_list);
+        if(chatList == null)
+            return;
+
+        chatList.setTranscriptMode(ListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
+
+        ChatAdapter adapter = new ChatAdapter(this, R.layout.chat_list_item, chatArray);
+        chatList.setAdapter(adapter);
+    }
+    private void populateOnline(JSONArray onlines) {
+        ArrayList<String> online = new ArrayList<String>();
+        for(int i = 0; i < onlines.length(); i++) {
+            try {
+                String oneOn = onlines.getString(i);
+                online.add(oneOn.replaceFirst("\\^.*",""));
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        onlineList.setText(TextUtils.join(", ",online));
+
     }
 
     private void populateMeds(JSONArray meds) {
+        ArrayList<JSONObject> medArray = new ArrayList<JSONObject>();
+        for(int i = 0; i < meds.length(); i++) {
+            try {
+                JSONObject med = meds.getJSONObject(i);
+                medArray.add(med);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        medList = (ListView) findViewById(R.id.med_list);
+        if(medList == null)
+            return;
+
+        MedAdapter adapter = new MedAdapter(this, R.layout.med_list_item, medArray);
+        medList.setAdapter(adapter);
     }
+
+    public class ChatAdapter extends ArrayAdapter<JSONObject> {
+
+
+        private final List<JSONObject> values;
+
+        public ChatAdapter(Context context, int resource, List<JSONObject> items) {
+            super(context, resource, items);
+            this.values = items;
+        }
+
+        @Override
+        public View getView(final int position, View convertView, ViewGroup parent) {
+
+            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+            View rowView = inflater.inflate(R.layout.chat_list_item, parent, false);
+
+            JSONObject p = values.get(position);
+            try {
+                TextView time = (TextView) rowView.findViewById(R.id.time);
+                if (time != null) {
+                    String ts = null;
+                    ts = time2Ago(context, Integer.parseInt(p.getString("time")));
+                    time.setText(ts);
+                }
+                TextView name = (TextView) rowView.findViewById(R.id.user);
+                if (name != null) {
+                    name.setText(p.getString("user"));
+                }
+                TextView mess = (TextView) rowView.findViewById(R.id.message);
+                if (mess != null) {
+                    mess.setText(p.getString("message"));
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return rowView;
+
+        }
+    }
+
+    public class MedAdapter extends ArrayAdapter<JSONObject> {
+
+
+        private final List<JSONObject> values;
+
+        public MedAdapter(Context context, int resource, List<JSONObject> items) {
+            super(context, resource, items);
+            this.values = items;
+        }
+
+        @Override
+        public View getView(final int position, View convertView, ViewGroup parent) {
+
+            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+            View rowView = inflater.inflate(R.layout.med_list_item, parent, false);
+
+            JSONObject p = values.get(position);
+
+            TextView walk = (TextView) rowView.findViewById(R.id.one_walking);
+            TextView sit = (TextView) rowView.findViewById(R.id.one_sitting);
+            TextView name = (TextView) rowView.findViewById(R.id.one_med);
+
+            try {
+                walk.setText(p.getString("walking"));
+                sit.setText(p.getString("sitting"));
+                name.setText(p.getString("user"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return rowView;
+        }
+    }
+
+    private String time2Ago(Context context, int then) {
+        int now = (int) Math.round(new Date().getTime()/1000);
+
+        int ela = now - then;
+
+        String time = "";
+        if (ela < 5)
+            time = "now";
+        else if(ela < 60)
+            time = ela + "s ago";
+        else if(ela < 60*60)
+            time = Math.floor(ela/60) + "m ago";
+        else if(ela < 60*60*24)
+            time = Math.floor(ela/60/60) + "h ago";
+        else if(ela < 60*60*24*7)
+            time = Math.floor(ela/60/60/24) + "d ago";
+        else {
+            Date date = new Date(then*1000);
+            DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT);
+            time = df.format(new Date(0));
+        }
+        return time;
+    }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -400,5 +594,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
+
 
 }
