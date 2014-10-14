@@ -10,6 +10,7 @@
         android:layout_height="@dimen/login_form_height"
         android:background="#FFFFFFFF"
         android:layout_centerInParent="true"
+        android:padding="10dp"
         >
         <TextView
             android:layout_width="match_parent"

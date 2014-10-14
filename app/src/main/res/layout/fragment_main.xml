@@ -15,25 +15,32 @@
         <TextView
             android:text="@string/walking"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:gravity="center"
+            />
         <EditText
             android:inputType="number"
-            android:id="@+id/walking"
+            android:hint="@string/walking"
+            android:id="@+id/walking_input"
             android:layout_weight="1"
             android:layout_width="0dp"
             android:layout_height="@dimen/edit_text_height" />
         <TextView
             android:text="@string/sitting"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:gravity="center"
+            />
         <EditText
             android:inputType="number"
-            android:id="@+id/sitting"
+            android:id="@+id/sitting_input"
             android:layout_weight="1"
             android:layout_width="0dp"
-            android:layout_height="@dimen/edit_text_height" />
+            android:layout_height="@dimen/edit_text_height"
+            android:hint="@string/sitting"
+            />
         <Button
-            android:id="@+id/chat_send"
+            android:id="@+id/med_send"
             android:text="@string/send"
             android:layout_width="100dp"
             android:layout_height="50dp" />

@@ -15,6 +15,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -28,7 +29,12 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
+import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 import android.util.JsonReader;
 import android.util.Log;
 import android.view.Gravity;
@@ -39,6 +45,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -58,8 +65,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 
-public class MainActivity extends ActionBarActivity implements ActionBar.TabListener {
-
+public class MainActivity extends ActionBarActivity implements ActionBar.TabListener,View.OnClickListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -89,8 +95,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     private ListView medList;
     private TextView onlineList;
 
+    private boolean isShowing = false;
+
     HttpClient httpclient;
-    private Context context;
+    private static MainActivity context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -144,6 +152,11 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
         loginToken = prefs.getString("login_token","");
 
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        isShowing = true;
         if(loginToken.equals(""))
             showLogin();
         else {
@@ -151,7 +164,12 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             password = "";
             doRefresh();
         }
+    }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        isShowing = false;
     }
 
     private void showLogin() {
@@ -164,7 +182,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
         nvp.add(new BasicNameValuePair("username", username));
         nvp.add(new BasicNameValuePair("password", password));
-        nvp.add(new BasicNameValuePair("login-token", loginToken));
+        nvp.add(new BasicNameValuePair("login_token", loginToken));
         nvp.add(new BasicNameValuePair("submit", "Login"));
 
         PostTask pt = new PostTask();
@@ -174,12 +192,29 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
     private void doRefresh() {
         ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
-        nvp.add(new BasicNameValuePair("logged_user", username));
+        nvp.add(new BasicNameValuePair("username", username));
         nvp.add(new BasicNameValuePair("submit", "Refresh"));
 
         PostTask pt = new PostTask();
         pt.execute(nvp);
         Log.d(TAG, "Executing: refresh");
+    }
+
+    private void doSubmit(String formId, ArrayList<NameValuePair> nvpTemp) {
+        ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
+        nvp.add(new BasicNameValuePair("username", username));
+        nvp.add(new BasicNameValuePair("login_token", username));
+        nvp.add(new BasicNameValuePair("form_id", formId));
+
+        for(NameValuePair nv : nvpTemp) {
+            nvp.add(nv);
+        }
+
+        nvp.add(new BasicNameValuePair("submit", "Refresh"));
+
+        PostTask pt = new PostTask();
+        pt.execute(nvp);
+        Log.d(TAG, "Executing: submit");
     }
 
 
@@ -212,6 +247,26 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
     @Override
     public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
+    }
+
+    @Override
+    public void onClick(View view) {
+        int id = view.getId();
+        ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
+        switch(id) {
+            case R.id.chat_send:
+                EditText message = (EditText) findViewById(R.id.chat_text);
+                nvp.add(new BasicNameValuePair("message", message.getText().toString()));
+                doSubmit("chatform", nvp);
+                break;
+            case R.id.med_send:
+                EditText walking = (EditText) findViewById(R.id.walking_input);
+                EditText sitting = (EditText) findViewById(R.id.sitting_input);
+                nvp.add(new BasicNameValuePair("walking", walking.getText().toString()));
+                nvp.add(new BasicNameValuePair("sitting", sitting.getText().toString()));
+                doSubmit("timeform", nvp);
+                break;
+        }
     }
 
     /**
@@ -288,9 +343,13 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             switch(section) {
                 case 1:
                     rootView = inflater.inflate(R.layout.fragment_main, container, false);
+                    Button medButton = (Button) rootView.findViewById(R.id.med_send);
+                    medButton.setOnClickListener(context);
                     break;
                 case 2:
                     rootView = inflater.inflate(R.layout.fragment_chat, container, false);
+                    Button chatButton = (Button) rootView.findViewById(R.id.chat_send);
+                    chatButton.setOnClickListener(context);
                     break;
                 case 3:
                     rootView = inflater.inflate(R.layout.fragment_profile, container, false);
@@ -345,10 +404,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                             }
 
                         } catch (ClientProtocolException e) {
-                            // TODO Auto-generated catch block
                             error = e.getMessage();
                         } catch (IOException e) {
-                            // TODO Auto-generated catch block
                             error = e.getMessage();
                         }
                     }
@@ -361,7 +418,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                     error = e.getMessage();
                     return "";
                 }
-
+/*
                 String which = "";
 
                 for(NameValuePair nvp : nameValuePair){
@@ -380,6 +437,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                 }
                 else if(which.equals("registerform")) {
                 }
+*/
             }
             return responseString;
         }
@@ -396,6 +454,11 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             try {
                 //Log.d(TAG,"result:"+result);
                 JSONObject json = new JSONObject(result);
+                if(json.has("success")) {
+                    int success = Integer.parseInt(json.getString("success"));
+                    if(success == -1) // not logged in
+                        showLogin();
+                }
                 if(json.has("logged")) {
                     populateOnline(json.getJSONArray("logged"));
 
@@ -424,7 +487,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
                 @Override
                 public void onFinish() {
-                    doRefresh();
+                    if(isShowing)
+                        doRefresh();
                 }
             };
             ct.start();
@@ -447,10 +511,9 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         if(chatList == null)
             return;
 
-        chatList.setTranscriptMode(ListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
-
         ChatAdapter adapter = new ChatAdapter(this, R.layout.chat_list_item, chatArray);
         chatList.setAdapter(adapter);
+        chatList.setSelection(adapter.getCount() - 1);
     }
     private void populateOnline(JSONArray onlines) {
         ArrayList<String> online = new ArrayList<String>();
@@ -504,19 +567,33 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
             JSONObject p = values.get(position);
             try {
+                int then = Integer.parseInt(p.getString("time"));
+                int now = Math.round(new Date().getTime()/1000);
+
+                int ela = now - then;
+                int day = 60*60*24;
+                ela = ela > day ? day : ela;
+                int intColor = 255 - Math.round(ela*255/day);
+                intColor = intColor > 100 ? intColor : 100;
+                String hexTransparency = Integer.toHexString(intColor);
+                hexTransparency = hexTransparency.length() > 1 ? hexTransparency : "0"+hexTransparency;
+                String hexColor = "#"+hexTransparency+"000000";
+                int transparency = Color.parseColor(hexColor);
+
                 TextView time = (TextView) rowView.findViewById(R.id.time);
                 if (time != null) {
                     String ts = null;
-                    ts = time2Ago(context, Integer.parseInt(p.getString("time")));
+                    ts = time2Ago(then);
                     time.setText(ts);
-                }
-                TextView name = (TextView) rowView.findViewById(R.id.user);
-                if (name != null) {
-                    name.setText(p.getString("user"));
+                    time.setTextColor(transparency);
                 }
                 TextView mess = (TextView) rowView.findViewById(R.id.message);
                 if (mess != null) {
-                    mess.setText(p.getString("message"));
+                    String text = "<b>"+(p.getString("me").equals("true")?"<font color=\"blue\">":"")+p.getString("user")+(p.getString("me").equals("true")?"</font>":"")+"</b>: "+p.getString("message");
+                    Spanned html = Html.fromHtml(text);
+
+                    mess.setText(html);
+                    mess.setTextColor(transparency);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -560,7 +637,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         }
     }
 
-    private String time2Ago(Context context, int then) {
+    private String time2Ago(int then) {
         int now = (int) Math.round(new Date().getTime()/1000);
 
         int ela = now - then;
@@ -571,11 +648,11 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         else if(ela < 60)
             time = ela + "s ago";
         else if(ela < 60*60)
-            time = Math.floor(ela/60) + "m ago";
+            time = (int) Math.floor(ela/60) + "m ago";
         else if(ela < 60*60*24)
-            time = Math.floor(ela/60/60) + "h ago";
+            time = (int) Math.floor(ela/60/60) + "h ago";
         else if(ela < 60*60*24*7)
-            time = Math.floor(ela/60/60/24) + "d ago";
+            time = (int) Math.floor(ela/60/60/24) + "d ago";
         else {
             Date date = new Date(then*1000);
             DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT);

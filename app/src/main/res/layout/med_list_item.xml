@@ -8,12 +8,16 @@
         android:id="@+id/one_walking"
         android:layout_width="wrap_content"
         android:gravity="center_vertical"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:paddingRight="@dimen/text_padding"
+        />
     <TextView
         android:id="@+id/one_sitting"
         android:layout_width="wrap_content"
         android:gravity="center_vertical"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:paddingRight="@dimen/text_padding"
+        />
     <TextView
         android:id="@+id/one_med"
         android:layout_width="0dp"

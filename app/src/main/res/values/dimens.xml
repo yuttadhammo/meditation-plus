@@ -5,4 +5,5 @@
     <dimen name="edit_text_height">40dp</dimen>
     <dimen name="login_form_width">400dp</dimen>
     <dimen name="login_form_height">200dp</dimen>
+    <dimen name="text_padding">10dp</dimen>
 </resources>
