@@ -16,34 +16,24 @@
 */
 package org.sirimangalo.meditationplus;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.preference.PreferenceManager;
-import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
-import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -51,12 +41,16 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.GridView;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -72,6 +66,13 @@ import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Locale;
+import java.util.TimeZone;
 
 
 public class MainActivity extends ActionBarActivity implements ActionBar.TabListener,View.OnClickListener {
@@ -109,6 +110,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
     private int listVersion = -1;
     private int chatVersion = -1;
+    private int logVersion = -1;
     private int commitVersion = -1;
 
     HttpClient httpclient;
@@ -119,9 +121,15 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
     private JSONArray jsonChats;
     private JSONArray jsonList;
+    private JSONArray jsonLogged;
     private JSONArray jsonCommit;
 
     private String lastSubmit = "";
+    private static GridView smilies;
+    private int fullRefreshPeriod = 60;
+    private int refreshPeriod = 10;
+    private CountDownTimer ct;
+    private boolean restartTimer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -182,11 +190,47 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             password = "";
             doRefresh(new ArrayList<NameValuePair>());
         }
+
     }
+
     @Override
     protected void onResume() {
         super.onResume();
         isShowing = true;
+        listVersion = -1;
+        chatVersion = -1;
+        restartTimer = true;
+
+        refreshPeriod = Integer.parseInt(prefs.getString("refresh_period","10"))*1000;
+        fullRefreshPeriod = Integer.parseInt(prefs.getString("full_refresh_period","60"))*1000;
+
+        if(ct != null)
+            ct.cancel();
+
+        ct = new CountDownTimer(fullRefreshPeriod,refreshPeriod) {
+            @Override
+            public void onTick(long l) {
+                ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
+                if(isShowing) {
+                    Log.d(TAG,"timer tick");
+                    doRefresh(nvp);
+                }
+            }
+
+            @Override
+            public void onFinish() {
+                if(isShowing) {
+                    listVersion = -1;
+                    chatVersion = -1;
+                    Log.d(TAG,"timer finish");
+                    restartTimer = true;
+                    ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
+                    nvp.add(new BasicNameValuePair("full_update", "true"));
+                    doRefresh(nvp);
+                }
+            }
+        };
+        doRefresh(new ArrayList<NameValuePair>());
     }
 
     @Override
@@ -210,14 +254,21 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+        Intent i;
 
         switch(id) {
+            case R.id.action_profile:
+                i = new Intent(this,ProfileActivity.class);
+                i.putExtra("username",username);
+                startActivity(i);
+                return true;
             case R.id.action_logout:
                 doLogout();
                 return true;
             case R.id.action_settings:
+                i = new Intent(this,PrefsActivity.class);
+                startActivity(i);
                 return true;
-
         }
 
 
@@ -268,6 +319,14 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             case R.id.med_cancel:
                 doSubmit("cancelform", nvp);
                 break;
+            case R.id.smily_button:
+                if(smilies.getVisibility() == View.GONE)
+                    smilies.setVisibility(View.VISIBLE);
+                else
+                    smilies.setVisibility(View.GONE);
+                break;
+            default:
+                smilies.setVisibility(View.GONE);
         }
     }
 
@@ -332,7 +391,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
         PostTask pt = new PostTask();
         pt.execute(nvp);
-        Log.d(TAG, "Executing: refresh");
     }
 
     public void doSubmit(String formId, ArrayList<NameValuePair> nvp) {
@@ -421,6 +479,21 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                     rootView = inflater.inflate(R.layout.fragment_chat, container, false);
                     Button chatButton = (Button) rootView.findViewById(R.id.chat_send);
                     chatButton.setOnClickListener(context);
+
+                    Button smilyButton = (Button) rootView.findViewById(R.id.smily_button);
+                    smilyButton.setOnClickListener(context);
+
+                    final TextView chatInput = (TextView) rootView.findViewById(R.id.chat_text);
+
+                    smilies = (GridView) rootView.findViewById(R.id.smilies);
+                    smilies.setAdapter(new ImageAdapter(context));
+                    smilies.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+                            String[] s = context.getResources().getStringArray(R.array.smily_tags);
+                            chatInput.setText(chatInput.getText()+s[position]);
+                            smilies.setVisibility(View.GONE);
+                        }
+                    });
                     break;
                 case 3:
                     rootView = inflater.inflate(R.layout.fragment_commit, container, false);
@@ -510,26 +583,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                     error = e.getMessage();
                     return "";
                 }
-/*
-                String which = "";
-
-                for(NameValuePair nvp : nameValuePair){
-                    if(nvp.getName().equals("formid")) {
-                        which = nvp.getValue();
-                        break;
-                    }
-                }
-
-                if(which.equals("chatform")) {
-
-                }
-                else if(which.equals("medform")) {
-                }
-                else if(which.equals("loginform")) {
-                }
-                else if(which.equals("registerform")) {
-                }
-*/
             }
             return responseString;
         }
@@ -572,23 +625,31 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                     }
                 }
                 if(json.has("chat")) {
-                    if(!json.get("chat").equals("-1"))
+                    if(json.get("chat") instanceof JSONArray)
                         jsonChats = json.getJSONArray("chat");
                     if(jsonChats == null)
                         chatVersion = -1;
                     else
-                        populateChat(jsonChats);
+                        populateChat(jsonChats, json.has("admin") && json.getString("admin").equals("true"));
                 }
                 if(json.has("list")) {
-                    if(!json.get("list").equals("-1"))
+                    if(json.get("list") instanceof JSONArray)
                         jsonList = json.getJSONArray("list");
                     if(jsonList == null)
                         listVersion = -1;
                     else
                         populateMeds(jsonList);
                 }
+                if(json.has("hours")) {
+                    if(json.get("hours") instanceof JSONArray)
+                        jsonLogged = json.getJSONArray("hours");
+                    if(jsonLogged == null)
+                        logVersion = -1;
+                    else
+                        populateLog(jsonLogged);
+                }
                 if(json.has("commit")) {
-                    if(!json.get("commit").equals(-1)) {
+                    if(json.get("commit") instanceof JSONObject) {
                         jsonCommit = json.getJSONObject("commit").getJSONArray("commitments");
 
                         if (jsonCommit == null)
@@ -598,6 +659,9 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                     }
                 }
                 if(json.has("login_token")) {
+                    if(lastSubmit.equals("register"))
+                        Toast.makeText(context,getString(R.string.registered),Toast.LENGTH_SHORT);
+
                     loginToken = json.getString("login_token");
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.putString("login_token", loginToken);
@@ -611,32 +675,54 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            CountDownTimer ct = new CountDownTimer(10000,10000) {
-                @Override
-                public void onTick(long l) {
 
-                }
-
-                @Override
-                public void onFinish() {
-                    if(isShowing) {
-                        ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
-                        if(refreshCount++ % 6 == 0) { // reset every minute
-                            listVersion = -1;
-                            chatVersion = -1;
-                            nvp.add(new BasicNameValuePair("full_update", "true"));
-                        }
-                        doRefresh(nvp);
-                    }
-                }
-            };
-            ct.start();
+            if(restartTimer) {
+                Log.d(TAG,"restarting timer");
+                restartTimer = false;
+                ct.start();
+            }
         }
 
 
     }
 
-    private void populateChat(JSONArray chats) {
+    private void populateLog(JSONArray jsonLogged) {
+        Calendar utc = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        int hour = utc.get(Calendar.HOUR_OF_DAY);
+
+        int max_hour = 0;
+        int max_height = 100;
+
+        LinearLayout hll = (LinearLayout) findViewById(R.id.time_log);
+        hll.removeAllViews();
+
+        try {
+            max_hour = jsonLogged.getInt(0);
+            for(int i = 1; i < jsonLogged.length(); i++){
+                max_hour = Math.max(max_hour,jsonLogged.getInt(i));
+            }
+            for(int i = 0; i < jsonLogged.length(); i++){
+                int height = (int) Math.ceil(max_height*jsonLogged.getInt(i)/max_hour);
+                LinearLayout ll = (LinearLayout) context.getLayoutInflater().inflate(R.layout.log_cell, null);
+
+                ImageView iv = (ImageView) ll.findViewById(R.id.min_cell);
+                iv.getLayoutParams().height = height;
+                iv.getLayoutParams().width = hll.getWidth()/24;
+                TextView tv = (TextView) ll.findViewById(R.id.hour_no);
+                tv.setText(i+"");
+                if(hour == i)
+                    tv.setBackgroundColor(0xFFFFFF33);
+                ImageView sv = (ImageView) ll.findViewById(R.id.space_cell);
+                sv.getLayoutParams().height = 100-height;
+                hll.addView(ll);
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void populateChat(JSONArray chats, boolean admin) {
         if((ListView) findViewById(R.id.chat_list) == null)
             return;
         chatList = (ListView) findViewById(R.id.chat_list);
@@ -654,6 +740,19 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         ChatAdapter adapter = new ChatAdapter(this, R.layout.chat_list_item, chatArray);
         chatList.setAdapter(adapter);
         chatList.setSelection(adapter.getCount() - 1);
+        if(admin)
+            chatList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                @Override
+                public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                    TextView cid = (TextView) view.findViewById(R.id.cid);
+                    Log.d(TAG,"long click: "+cid.getText());
+                    ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
+                    Log.d(TAG,cid.getText()+"");
+                    doSubmit("delchat_" + cid.getText(), nvp);
+                    return true;
+                }
+            });
+
     }
 
     private void populateMeds(JSONArray meds) {

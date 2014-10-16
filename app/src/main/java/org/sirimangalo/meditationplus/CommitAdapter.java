@@ -28,13 +28,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.apache.http.NameValuePair;
-import org.json.JSONArray;
 import org.json.JSONObject;
-import org.sirimangalo.meditationplus.R;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 

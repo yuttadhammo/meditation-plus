@@ -27,5 +27,22 @@
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
     <string name="action_logout">Logout</string>
+    <string name="smily">:)</string>
+    <string name="registered">Registered successfully!</string>
+    <string name="name">Name</string>
+    <string name="about">About</string>
+    <string name="email">Email</string>
+    <string name="website">Website</string>
+    <string name="country">Country</string>
+    <string name="action_profile">Profile</string>
+    <string name="s_profile">%s\'s Profile</string>
+    <string name="technical_prefs">Technical</string>
+    <string name="refresh_period_desc">Number of seconds after which to check for new data</string>
+    <string name="refresh_period">Refresh Period</string>
+    <string name="action_edit">Edit</string>
+    <string name="full_refresh_period">Full Refresh Period</string>
+    <string name="full_refresh_period_desc">Number of seconds after which to do a full refresh, regardless of whether there is new data</string>
+    <string name="action_save">Save</string>
+    <string name="show_email">Show Email To Other Users</string>
 
 </resources>

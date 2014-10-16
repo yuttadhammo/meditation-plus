@@ -25,7 +25,6 @@ import android.widget.TextView;
 
 import org.json.JSONObject;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -37,6 +36,8 @@ public class MedAdapter extends ArrayAdapter<JSONObject> {
 
     private final List<JSONObject> values;
     private final Context context;
+
+    private String TAG = "MedAdapter";
 
     public MedAdapter(Context _context, int resource, List<JSONObject> items) {
         super(_context, resource, items);
@@ -64,7 +65,9 @@ public class MedAdapter extends ArrayAdapter<JSONObject> {
             int si = Integer.parseInt(so);
             int ti = Integer.parseInt(p.getString("start"));
 
-            int now = Math.round(new Date().getTime()/1000);
+            long nowL = System.currentTimeMillis()/1000;
+
+            int now = (int) nowL;
             int secs = now - ti;
 
             String ws = "0";

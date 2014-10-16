@@ -10,4 +10,5 @@
     <dimen name="subtitle_size">20sp</dimen>
     <dimen name="med_head_width">100dp</dimen>
     <dimen name="med_cell_padding">4dp</dimen>
+    <dimen name="button_separator_margin">6dp</dimen>
 </resources>

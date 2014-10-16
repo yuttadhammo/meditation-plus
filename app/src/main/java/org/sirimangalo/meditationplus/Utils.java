@@ -26,7 +26,8 @@ import java.util.Date;
  */
 public class Utils {
     public static String time2Ago(int then) {
-        int now = (int) Math.round(new Date().getTime()/1000);
+        long nowL = System.currentTimeMillis()/1000;
+        int now = (int) nowL;
 
         int ela = now - then;
 

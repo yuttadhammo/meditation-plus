@@ -17,12 +17,10 @@
 package org.sirimangalo.meditationplus;
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.text.Html;
 import android.text.Spanned;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,7 +30,6 @@ import android.widget.TextView;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -74,7 +71,8 @@ public class ChatAdapter extends ArrayAdapter<JSONObject> {
         JSONObject p = values.get(position);
         try {
             int then = Integer.parseInt(p.getString("time"));
-            int now = Math.round(new Date().getTime()/1000);
+            long nowL = System.currentTimeMillis()/1000;
+            int now = (int) nowL;
 
             int ela = now - then;
             int day = 60*60*24;
@@ -104,6 +102,10 @@ public class ChatAdapter extends ArrayAdapter<JSONObject> {
                 mess.setText(html);
                 mess.setTextColor(transparency);
             }
+
+            TextView cid = (TextView) rowView.findViewById(R.id.cid);
+            cid.setText(p.getString("cid"));
+
         } catch (JSONException e) {
             e.printStackTrace();
         }

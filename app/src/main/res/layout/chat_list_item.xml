@@ -17,5 +17,11 @@
         android:layout_weight="1"
         android:gravity="top"
         android:layout_height="match_parent" />
+    <TextView
+        android:id="@+id/cid"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        />
 
 </LinearLayout>

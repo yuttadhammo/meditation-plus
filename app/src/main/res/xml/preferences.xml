@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="@string/technical_prefs">
+        <EditTextPreference
+            android:inputType="number"
+            android:title="@string/refresh_period"
+            android:summary="@string/refresh_period_desc"
+            android:key="refresh_period"
+            android:defaultValue="10"
+            />
+        <EditTextPreference
+            android:inputType="number"
+            android:title="@string/full_refresh_period"
+            android:summary="@string/full_refresh_period_desc"
+            android:key="full_refresh_period"
+            android:defaultValue="60"
+            />
+    </PreferenceCategory>
+</PreferenceScreen>
