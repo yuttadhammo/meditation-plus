@@ -41,6 +41,7 @@ public class LoginActivity extends Activity {
 
         Button login = (Button) findViewById(R.id.login);
         Button cancel = (Button) findViewById(R.id.cancel);
+        Button register = (Button) findViewById(R.id.register);
 
         cancel.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -63,6 +64,29 @@ public class LoginActivity extends Activity {
                     Intent i = new Intent();
                     i.putExtra("username",user.getText().toString());
                     i.putExtra("password",pass.getText().toString());
+                    i.putExtra("method","login");
+                    setResult(Activity.RESULT_OK,i);
+                    finish();
+                }
+                else {
+                    Toast.makeText(context,error,Toast.LENGTH_SHORT);
+                }
+            }
+        });
+        register.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if(checkValues()) {
+
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putString("username",username);
+                    editor.putString("password",password);
+                    editor.apply();
+
+                    Intent i = new Intent();
+                    i.putExtra("username",user.getText().toString());
+                    i.putExtra("password",pass.getText().toString());
+                    i.putExtra("method","register");
                     setResult(Activity.RESULT_OK,i);
                     finish();
                 }

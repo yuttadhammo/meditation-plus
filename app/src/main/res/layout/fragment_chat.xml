@@ -28,7 +28,7 @@
     </LinearLayout>
     <ListView
         android:id="@+id/chat_list"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/chat_form"
         />

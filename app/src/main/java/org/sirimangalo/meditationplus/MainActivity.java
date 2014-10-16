@@ -3,13 +3,10 @@ package org.sirimangalo.meditationplus;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.DateFormat;
-import java.text.Format;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.TimeZone;
 
 import android.app.Activity;
 import android.content.Context;
@@ -30,14 +27,9 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.text.Html;
-import android.text.Spannable;
-import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
-import android.text.style.ForegroundColorSpan;
-import android.util.JsonReader;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -47,6 +39,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 
 import org.apache.http.HttpEntity;
@@ -83,7 +76,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     ViewPager mViewPager;
 
     private static String TAG = "MainActivity";
-    private SharedPreferences prefs;
+    private static SharedPreferences prefs;
     private int LOGIN_CODE = 555;
 
     private String username;
@@ -93,12 +86,26 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
     private ListView chatList;
     private ListView medList;
+    private ListView commitList;
     private TextView onlineList;
 
     private boolean isShowing = false;
 
+    private int listVersion = -1;
+    private int chatVersion = -1;
+    private int commitVersion = -1;
+
     HttpClient httpclient;
     private static MainActivity context;
+    private static NumberPicker sittingPicker;
+    private static NumberPicker walkingPicker;
+    private int refreshCount = 0;
+
+    private JSONArray jsonChats;
+    private JSONArray jsonList;
+    private JSONArray jsonCommit;
+
+    private String lastSubmit = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,6 +144,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                 actionBar.setSelectedNavigationItem(position);
             }
         });
+        mViewPager.setOffscreenPageLimit(2);
 
         // For each of the sections in the app, add a tab to the action bar.
         for (int i = 0; i < mSectionsPagerAdapter.getCount(); i++) {
@@ -151,19 +159,18 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         }
 
         loginToken = prefs.getString("login_token","");
-
-    }
-    @Override
-    protected void onResume() {
-        super.onResume();
-        isShowing = true;
         if(loginToken.equals(""))
             showLogin();
         else {
             username = prefs.getString("username","");
             password = "";
-            doRefresh();
+            doRefresh(new ArrayList<NameValuePair>());
         }
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        isShowing = true;
     }
 
     @Override
@@ -172,50 +179,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         isShowing = false;
     }
 
-    private void showLogin() {
-        Intent i = new Intent(this,LoginActivity.class);
-        startActivityForResult(i, LOGIN_CODE);
-    }
-
-    private void doLogin() {
-
-        ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
-        nvp.add(new BasicNameValuePair("username", username));
-        nvp.add(new BasicNameValuePair("password", password));
-        nvp.add(new BasicNameValuePair("login_token", loginToken));
-        nvp.add(new BasicNameValuePair("submit", "Login"));
-
-        PostTask pt = new PostTask();
-        pt.execute(nvp);
-        Log.d(TAG, "Executing: login");
-    }
-
-    private void doRefresh() {
-        ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
-        nvp.add(new BasicNameValuePair("username", username));
-        nvp.add(new BasicNameValuePair("submit", "Refresh"));
-
-        PostTask pt = new PostTask();
-        pt.execute(nvp);
-        Log.d(TAG, "Executing: refresh");
-    }
-
-    private void doSubmit(String formId, ArrayList<NameValuePair> nvpTemp) {
-        ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
-        nvp.add(new BasicNameValuePair("username", username));
-        nvp.add(new BasicNameValuePair("login_token", username));
-        nvp.add(new BasicNameValuePair("form_id", formId));
-
-        for(NameValuePair nv : nvpTemp) {
-            nvp.add(nv);
-        }
-
-        nvp.add(new BasicNameValuePair("submit", "Refresh"));
-
-        PostTask pt = new PostTask();
-        pt.execute(nvp);
-        Log.d(TAG, "Executing: submit");
-    }
 
 
     @Override
@@ -231,7 +194,18 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        return id == R.id.action_settings || super.onOptionsItemSelected(item);
+
+        switch(id) {
+            case R.id.action_logout:
+                doLogout();
+                return true;
+            case R.id.action_settings:
+                return true;
+
+        }
+
+
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -260,13 +234,99 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                 doSubmit("chatform", nvp);
                 break;
             case R.id.med_send:
-                EditText walking = (EditText) findViewById(R.id.walking_input);
-                EditText sitting = (EditText) findViewById(R.id.sitting_input);
-                nvp.add(new BasicNameValuePair("walking", walking.getText().toString()));
-                nvp.add(new BasicNameValuePair("sitting", sitting.getText().toString()));
+                int w = walkingPicker.getValue();
+                int s = sittingPicker.getValue();
+
+                if(w == 0 && s == 0)
+                    return;
+
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putInt("walking",w);
+                editor.putInt("sitting",s);
+                editor.apply();
+
+                nvp.add(new BasicNameValuePair("walking", Integer.toString(w * 5)));
+                nvp.add(new BasicNameValuePair("sitting", Integer.toString(s * 5)));
                 doSubmit("timeform", nvp);
                 break;
+            case R.id.med_cancel:
+                doSubmit("cancelform", nvp);
+                break;
         }
+    }
+
+
+    private void showLogin() {
+        Intent i = new Intent(this,LoginActivity.class);
+        startActivityForResult(i, LOGIN_CODE);
+    }
+
+    private void doLogin() {
+
+        ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
+        nvp.add(new BasicNameValuePair("username", username));
+        nvp.add(new BasicNameValuePair("password", password));
+        nvp.add(new BasicNameValuePair("login_token", loginToken));
+        nvp.add(new BasicNameValuePair("submit", "Login"));
+
+        lastSubmit = "login";
+
+        PostTask pt = new PostTask();
+        pt.execute(nvp);
+        Log.d(TAG, "Executing: login");
+    }
+
+    private void doLogout() {
+
+        httpclient = new DefaultHttpClient(); // new session
+
+        username = "";
+        password = "";
+
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.remove("login_token");
+        editor.apply();
+
+        showLogin();
+    }
+
+    private void doRegister() {
+
+        ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
+        nvp.add(new BasicNameValuePair("username", username));
+        nvp.add(new BasicNameValuePair("password", password));
+        nvp.add(new BasicNameValuePair("submit", "Register"));
+
+        lastSubmit = "register";
+
+        PostTask pt = new PostTask();
+        pt.execute(nvp);
+        Log.d(TAG, "Executing: login");
+    }
+
+    public void doRefresh(ArrayList<NameValuePair> nvp) {
+
+        nvp.add(new BasicNameValuePair("list_version", listVersion+""));
+        nvp.add(new BasicNameValuePair("chat_version", chatVersion+""));
+        nvp.add(new BasicNameValuePair("username", username));
+        nvp.add(new BasicNameValuePair("submit", "Refresh"));
+
+        if(listVersion == -1 && chatVersion == -1)
+            nvp.add(new BasicNameValuePair("full_update", "true"));
+
+        PostTask pt = new PostTask();
+        pt.execute(nvp);
+        Log.d(TAG, "Executing: refresh");
+    }
+
+    public void doSubmit(String formId, ArrayList<NameValuePair> nvp) {
+
+        lastSubmit = formId;
+
+        nvp.add(new BasicNameValuePair("login_token", loginToken));
+        nvp.add(new BasicNameValuePair("form_id", formId));
+
+        doRefresh(nvp);
     }
 
     /**
@@ -341,21 +401,37 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             int section = getArguments().getInt(ARG_SECTION_NUMBER);
 
             switch(section) {
-                case 1:
-                    rootView = inflater.inflate(R.layout.fragment_main, container, false);
-                    Button medButton = (Button) rootView.findViewById(R.id.med_send);
-                    medButton.setOnClickListener(context);
-                    break;
                 case 2:
                     rootView = inflater.inflate(R.layout.fragment_chat, container, false);
                     Button chatButton = (Button) rootView.findViewById(R.id.chat_send);
                     chatButton.setOnClickListener(context);
                     break;
                 case 3:
-                    rootView = inflater.inflate(R.layout.fragment_profile, container, false);
+                    rootView = inflater.inflate(R.layout.fragment_commit, container, false);
                     break;
                 default:
                     rootView = inflater.inflate(R.layout.fragment_main, container, false);
+                    walkingPicker = (NumberPicker) rootView.findViewById(R.id.walking_input);
+                    sittingPicker = (NumberPicker) rootView.findViewById(R.id.sitting_input);
+
+                    walkingPicker.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
+                    sittingPicker.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
+
+                    String[] numbers = getResources().getStringArray(R.array.numbers);
+
+                    walkingPicker.setMaxValue(numbers.length-1);
+                    sittingPicker.setMaxValue(numbers.length - 1);
+                    walkingPicker.setDisplayedValues(numbers);
+                    sittingPicker.setDisplayedValues(numbers);
+
+                    walkingPicker.setValue(prefs.getInt("walking",0));
+                    sittingPicker.setValue(prefs.getInt("sitting",0));
+
+                    Button medButton = (Button) rootView.findViewById(R.id.med_send);
+                    medButton.setOnClickListener(context);
+
+                    Button cancelButton = (Button) rootView.findViewById(R.id.med_cancel);
+                    cancelButton.setOnClickListener(context);
                     break;
             }
 
@@ -448,35 +524,75 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
         @Override
         protected void onPostExecute(String result) {
-            if(result.equals("") || result.equals("success"))
+            if(result.equals("success"))
                 return;
+            if(result.equals("") && (lastSubmit.equals("login") || lastSubmit.equals("register"))) {
+                Log.e(TAG, "error logging in or registering");
+                showLogin();
+                return;
+            }
+
 
             try {
                 //Log.d(TAG,"result:"+result);
                 JSONObject json = new JSONObject(result);
+
+                if(json.has("list_version"))
+                    listVersion = json.getInt("list_version");
+                if(json.has("chat_version"))
+                    chatVersion = json.getInt("chat_version");
+
+
                 if(json.has("success")) {
                     int success = Integer.parseInt(json.getString("success"));
-                    if(success == -1) // not logged in
+                    if(success == -1) { // not logged in
+                        Log.e(TAG, "not logged in");
                         showLogin();
-                }
-                if(json.has("logged")) {
-                    populateOnline(json.getJSONArray("logged"));
-
+                        return;
+                    }
+                    else if(success == 1) {
+                        if(lastSubmit.equals("chatform"))
+                            ((EditText) findViewById(R.id.chat_text)).setText("");
+                    }
                 }
                 if(json.has("chat")) {
-                    populateChat(json.getJSONArray("chat"));
+                    if(!json.get("chat").equals("-1"))
+                        jsonChats = json.getJSONArray("chat");
+                    if(jsonChats == null)
+                        chatVersion = -1;
+                    else
+                        populateChat(jsonChats);
                 }
                 if(json.has("list")) {
-                    populateMeds(json.getJSONArray("list"));
+                    if(!json.get("list").equals("-1"))
+                        jsonList = json.getJSONArray("list");
+                    if(jsonList == null)
+                        listVersion = -1;
+                    else
+                        populateMeds(jsonList);
+                }
+                if(json.has("commit")) {
+                    if(!json.get("commit").equals(-1)) {
+                        jsonCommit = json.getJSONObject("commit").getJSONArray("commitments");
+
+                        if (jsonCommit == null)
+                            commitVersion = -1;
+                        else
+                            populateCommit(jsonCommit);
+                    }
                 }
                 if(json.has("login_token")) {
                     loginToken = json.getString("login_token");
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.putString("login_token", loginToken);
                     editor.apply();
-                    doRefresh();
+                    doRefresh(new ArrayList<NameValuePair>());
                 }
-            } catch (JSONException e) {
+                if(json.has("logged")) {
+                    populateOnline(json.getJSONArray("logged"));
+
+                }
+            } catch (Exception e) {
                 e.printStackTrace();
             }
             CountDownTimer ct = new CountDownTimer(10000,10000) {
@@ -487,8 +603,15 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
                 @Override
                 public void onFinish() {
-                    if(isShowing)
-                        doRefresh();
+                    if(isShowing) {
+                        ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
+                        if(refreshCount++ % 6 == 0) { // reset every minute
+                            listVersion = -1;
+                            chatVersion = -1;
+                            nvp.add(new BasicNameValuePair("full_update", "true"));
+                        }
+                        doRefresh(nvp);
+                    }
                 }
             };
             ct.start();
@@ -498,6 +621,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     }
 
     private void populateChat(JSONArray chats) {
+        if((ListView) findViewById(R.id.chat_list) == null)
+            return;
+        chatList = (ListView) findViewById(R.id.chat_list);
+
         ArrayList<JSONObject> chatArray = new ArrayList<JSONObject>();
         for(int i = 0; i < chats.length(); i++) {
             try {
@@ -507,30 +634,17 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                 e.printStackTrace();
             }
         }
-        chatList = (ListView) findViewById(R.id.chat_list);
-        if(chatList == null)
-            return;
 
         ChatAdapter adapter = new ChatAdapter(this, R.layout.chat_list_item, chatArray);
         chatList.setAdapter(adapter);
         chatList.setSelection(adapter.getCount() - 1);
     }
-    private void populateOnline(JSONArray onlines) {
-        ArrayList<String> online = new ArrayList<String>();
-        for(int i = 0; i < onlines.length(); i++) {
-            try {
-                String oneOn = onlines.getString(i);
-                online.add(oneOn.replaceFirst("\\^.*",""));
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-        onlineList.setText(TextUtils.join(", ",online));
-
-    }
 
     private void populateMeds(JSONArray meds) {
+        if((ListView) findViewById(R.id.med_list) == null)
+            return;
+        medList = (ListView) findViewById(R.id.med_list);
+
         ArrayList<JSONObject> medArray = new ArrayList<JSONObject>();
         for(int i = 0; i < meds.length(); i++) {
             try {
@@ -540,137 +654,78 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                 e.printStackTrace();
             }
         }
-        medList = (ListView) findViewById(R.id.med_list);
-        if(medList == null)
-            return;
+
+        TextView emptyText = (TextView)findViewById(android.R.id.empty);
+        medList.setEmptyView(emptyText);
 
         MedAdapter adapter = new MedAdapter(this, R.layout.med_list_item, medArray);
         medList.setAdapter(adapter);
     }
 
-    public class ChatAdapter extends ArrayAdapter<JSONObject> {
+    private void populateCommit(JSONArray commitJ) {
+        if((ListView) findViewById(R.id.commit_list) == null)
+            return;
+        commitList = (ListView) findViewById(R.id.commit_list);
 
-
-        private final List<JSONObject> values;
-
-        public ChatAdapter(Context context, int resource, List<JSONObject> items) {
-            super(context, resource, items);
-            this.values = items;
-        }
-
-        @Override
-        public View getView(final int position, View convertView, ViewGroup parent) {
-
-            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
-            View rowView = inflater.inflate(R.layout.chat_list_item, parent, false);
-
-            JSONObject p = values.get(position);
+        ArrayList<JSONObject> commitArray = new ArrayList<JSONObject>();
+        for(int i = 0; i < commitJ.length(); i++) {
             try {
-                int then = Integer.parseInt(p.getString("time"));
-                int now = Math.round(new Date().getTime()/1000);
-
-                int ela = now - then;
-                int day = 60*60*24;
-                ela = ela > day ? day : ela;
-                int intColor = 255 - Math.round(ela*255/day);
-                intColor = intColor > 100 ? intColor : 100;
-                String hexTransparency = Integer.toHexString(intColor);
-                hexTransparency = hexTransparency.length() > 1 ? hexTransparency : "0"+hexTransparency;
-                String hexColor = "#"+hexTransparency+"000000";
-                int transparency = Color.parseColor(hexColor);
-
-                TextView time = (TextView) rowView.findViewById(R.id.time);
-                if (time != null) {
-                    String ts = null;
-                    ts = time2Ago(then);
-                    time.setText(ts);
-                    time.setTextColor(transparency);
-                }
-                TextView mess = (TextView) rowView.findViewById(R.id.message);
-                if (mess != null) {
-                    String text = "<b>"+(p.getString("me").equals("true")?"<font color=\"blue\">":"")+p.getString("user")+(p.getString("me").equals("true")?"</font>":"")+"</b>: "+p.getString("message");
-                    Spanned html = Html.fromHtml(text);
-
-                    mess.setText(html);
-                    mess.setTextColor(transparency);
-                }
+                JSONObject med = commitJ.getJSONObject(i);
+                commitArray.add(med);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            return rowView;
-
         }
+
+        CommitAdapter adapter = new CommitAdapter(this, R.layout.med_list_item, commitArray, username);
+        commitList.setAdapter(adapter);
     }
 
-    public class MedAdapter extends ArrayAdapter<JSONObject> {
+    private void populateOnline(JSONArray onlines) {
+        String onlineText = "<b>"+getString(R.string.online)+"</b>";
 
-
-        private final List<JSONObject> values;
-
-        public MedAdapter(Context context, int resource, List<JSONObject> items) {
-            super(context, resource, items);
-            this.values = items;
-        }
-
-        @Override
-        public View getView(final int position, View convertView, ViewGroup parent) {
-
-            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
-            View rowView = inflater.inflate(R.layout.med_list_item, parent, false);
-
-            JSONObject p = values.get(position);
-
-            TextView walk = (TextView) rowView.findViewById(R.id.one_walking);
-            TextView sit = (TextView) rowView.findViewById(R.id.one_sitting);
-            TextView name = (TextView) rowView.findViewById(R.id.one_med);
-
+        ArrayList<String> online = new ArrayList<String>();
+        for(int i = 0; i < onlines.length(); i++) {
             try {
-                walk.setText(p.getString("walking"));
-                sit.setText(p.getString("sitting"));
-                name.setText(p.getString("user"));
-            } catch (Exception e) {
+                String oneOn = onlines.getString(i).replaceFirst("\\^.*", "");
+
+                boolean isMed = false;
+
+                for(int j = 0; j < jsonList.length(); j++) {
+                    JSONObject user = jsonList.getJSONObject(j);
+                    String username = user.getString("username");
+                    if(username.equals(oneOn))
+                        isMed = true;
+                }
+                online.add("<font color=\"" + (isMed ? "#009900" : "#FF9900") + "\">" + oneOn + "</font>");
+
+            } catch (JSONException e) {
                 e.printStackTrace();
             }
-            return rowView;
         }
+
+        onlineText += " "+TextUtils.join(", ",online);
+
+        onlineList.setText(Html.fromHtml(onlineText));
+
     }
-
-    private String time2Ago(int then) {
-        int now = (int) Math.round(new Date().getTime()/1000);
-
-        int ela = now - then;
-
-        String time = "";
-        if (ela < 5)
-            time = "now";
-        else if(ela < 60)
-            time = ela + "s ago";
-        else if(ela < 60*60)
-            time = (int) Math.floor(ela/60) + "m ago";
-        else if(ela < 60*60*24)
-            time = (int) Math.floor(ela/60/60) + "h ago";
-        else if(ela < 60*60*24*7)
-            time = (int) Math.floor(ela/60/60/24) + "d ago";
-        else {
-            Date date = new Date(then*1000);
-            DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT);
-            time = df.format(new Date(0));
-        }
-        return time;
-    }
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode == LOGIN_CODE && resultCode == Activity.RESULT_OK) {
-            username = data.getStringExtra("username");
-            password = data.getStringExtra("password");
-            doLogin();
+        if(requestCode == LOGIN_CODE) {
+            if(resultCode == Activity.RESULT_OK) {
+                username = data.getStringExtra("username");
+                password = data.getStringExtra("password");
+                String method = data.getStringExtra("method");
+                if (method.equals("login"))
+                    doLogin();
+                else if (method.equals("register"))
+                    doRegister();
+            }
+            else {
+                finish();
+            }
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
-
-
 }

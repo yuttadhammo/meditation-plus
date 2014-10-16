@@ -4,11 +4,13 @@
     <string name="app_name">MeditationPlus</string>
     <string name="title_section1">Meditation</string>
     <string name="title_section2">Chat</string>
-    <string name="title_section3">Profile</string>
+    <string name="title_section3">Commit</string>
     <string name="action_settings">Settings</string>
     <string name="send">Send</string>
     <string name="sitting">Sitting</string>
     <string name="walking">Walking</string>
+    <string name="sitting_label">Sitting:</string>
+    <string name="walking_label">Walking:</string>
 
     <string name="no_internet">No network connection</string>
     <string name="error">Error</string>
@@ -16,5 +18,14 @@
     <string name="username">Username</string>
     <string name="password">Password</string>
     <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="commit">Commit</string>
+    <string name="start">Start</string>
+    <string name="empty_list">No one is currently meditating.</string>
+    <string name="online">Online:</string>
+    <string name="uncommit">Uncommit</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="action_logout">Logout</string>
 
 </resources>

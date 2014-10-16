@@ -1,28 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal" android:layout_width="match_parent"
-    android:layout_height="40dp"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     >
     <TextView
         android:id="@+id/one_walking"
-        android:layout_width="wrap_content"
-        android:gravity="center_vertical"
+        android:layout_width="@dimen/med_head_width"
+        android:gravity="center"
         android:layout_height="match_parent"
-        android:paddingRight="@dimen/text_padding"
+        android:padding="@dimen/med_cell_padding"
         />
     <TextView
         android:id="@+id/one_sitting"
-        android:layout_width="wrap_content"
-        android:gravity="center_vertical"
+        android:layout_width="@dimen/med_head_width"
+        android:gravity="center"
         android:layout_height="match_parent"
-        android:paddingRight="@dimen/text_padding"
+        android:padding="@dimen/med_cell_padding"
         />
     <TextView
         android:id="@+id/one_med"
         android:layout_width="0dp"
         android:layout_weight="1"
-        android:gravity="center_vertical"
-        android:layout_height="match_parent" />
+        android:gravity="center"
+        android:layout_height="match_parent"
+        android:padding="@dimen/med_cell_padding"
+        />
 
 </LinearLayout>
