@@ -19,6 +19,7 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -144,18 +145,7 @@ public class ProfileActivity extends ActionBarActivity {
                 startActivity(i);
                 return true;
             case R.id.action_save:
-                ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
-                nvp.add(new BasicNameValuePair("name", nameView.getText().toString()));
-                nvp.add(new BasicNameValuePair("uid", uid));
-                nvp.add(new BasicNameValuePair("old_name", oldName));
-                nvp.add(new BasicNameValuePair("desc", aboutView.getText().toString()));
-                nvp.add(new BasicNameValuePair("email", emailView.getText().toString()));
-                nvp.add(new BasicNameValuePair("show_email", showEmailView.isChecked()?"1":"0"));
-                nvp.add(new BasicNameValuePair("website", websiteView.getText().toString()));
-
-                String country = ccodes[((Spinner)countryView).getSelectedItemPosition()];
-                nvp.add(new BasicNameValuePair("country", country));
-                doSubmit("profile", nvp, username);
+                doSaveEdit();
                 return true;
             case R.id.action_edit:
                 i = new Intent(this,ProfileActivity.class);
@@ -170,6 +160,58 @@ public class ProfileActivity extends ActionBarActivity {
 
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void doSaveEdit() {
+        String nameE = nameView.getText().toString();
+        String aboutE = aboutView.getText().toString();
+        String emailE = emailView.getText().toString();
+        String showEmailE = showEmailView.isChecked()?"1":"0";
+        String websiteE = websiteView.getText().toString();
+
+        // checks
+
+        int error = 0;
+
+        if(nameE.length() > 20) {
+            error = R.string.name_too_long;
+            nameView.setBackgroundColor(0xFFFFDDDD);
+        }
+        if(nameE.length() < 4) {
+            error = R.string.name_too_short;
+            nameView.setBackgroundColor(0xFFFFDDDD);
+        }
+        if(aboutE.length() > 255) {
+            aboutView.setBackgroundColor(0xFFFFDDDD);
+            error = R.string.about_too_long;
+        }
+        if(emailE.length() > 50) {
+            emailView.setBackgroundColor(0xFFFFDDDD);
+            error = R.string.email_too_long;
+        }
+        if(websiteE.length() > 100) {
+            websiteView.setBackgroundColor(0xFFFFDDDD);
+            error = R.string.website_too_long;
+        }
+
+        if(error != 0) {
+            Toast.makeText(this,error,Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
+        nvp.add(new BasicNameValuePair("name", nameE));
+        nvp.add(new BasicNameValuePair("uid", uid));
+        nvp.add(new BasicNameValuePair("old_name", oldName));
+        nvp.add(new BasicNameValuePair("desc", aboutE));
+        nvp.add(new BasicNameValuePair("email", emailE));
+        nvp.add(new BasicNameValuePair("show_email", showEmailE));
+        nvp.add(new BasicNameValuePair("website", websiteE));
+
+        String country = ccodes[((Spinner)countryView).getSelectedItemPosition()];
+        nvp.add(new BasicNameValuePair("country", country));
+        doSubmit("profile", nvp, username);
+
     }
 
     private void showLogin() {

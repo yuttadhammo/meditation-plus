@@ -25,6 +25,7 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -212,7 +213,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             public void onTick(long l) {
                 ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
                 if(isShowing) {
-                    Log.d(TAG,"timer tick");
                     doRefresh(nvp);
                 }
             }
@@ -222,7 +222,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                 if(isShowing) {
                     listVersion = -1;
                     chatVersion = -1;
-                    Log.d(TAG,"timer finish");
                     restartTimer = true;
                     ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
                     nvp.add(new BasicNameValuePair("full_update", "true"));
@@ -290,6 +289,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
     }
 
+    private int singleClick = 0;
+
     @Override
     public void onClick(View view) {
         int id = view.getId();
@@ -297,7 +298,12 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         switch(id) {
             case R.id.chat_send:
                 EditText message = (EditText) findViewById(R.id.chat_text);
-                nvp.add(new BasicNameValuePair("message", message.getText().toString()));
+                String messageT = message.getText().toString();
+                if(messageT.length() > 140) {
+                    Toast.makeText(this,R.string.message_too_log,Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                nvp.add(new BasicNameValuePair("message", messageT));
                 doSubmit("chatform", nvp);
                 break;
             case R.id.med_send:
@@ -325,6 +331,25 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                 else
                     smilies.setVisibility(View.GONE);
                 break;
+            case R.id.chat_text:
+                singleClick++;
+                Handler handler = new Handler();
+                Runnable r = new Runnable() {
+
+                    @Override
+                    public void run() {
+                        singleClick = 0;
+                    }
+                };
+
+                if (singleClick == 1) {
+                    //Single click
+                    handler.postDelayed(r, 250);
+                } else if (singleClick == 2) {
+                    //Double click
+                    singleClick = 0;
+                    ((EditText) findViewById(R.id.chat_text)).setText("");
+                }
             default:
                 smilies.setVisibility(View.GONE);
         }
@@ -485,6 +510,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
                     final TextView chatInput = (TextView) rootView.findViewById(R.id.chat_text);
 
+                    chatInput.setOnClickListener(context);
+
                     smilies = (GridView) rootView.findViewById(R.id.smilies);
                     smilies.setAdapter(new ImageAdapter(context));
                     smilies.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -606,6 +633,9 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                 //Log.d(TAG,"result:"+result);
                 JSONObject json = new JSONObject(result);
 
+                if(json.has("error") && json.getString("error").length() > 0)
+                    Toast.makeText(context,json.getString("error"),Toast.LENGTH_SHORT).show();
+
                 if(json.has("list_version"))
                     listVersion = json.getInt("list_version");
                 if(json.has("chat_version"))
@@ -677,7 +707,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             }
 
             if(restartTimer) {
-                Log.d(TAG,"restarting timer");
                 restartTimer = false;
                 ct.start();
             }

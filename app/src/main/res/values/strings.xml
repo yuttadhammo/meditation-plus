@@ -44,5 +44,11 @@
     <string name="full_refresh_period_desc">Number of seconds after which to do a full refresh, regardless of whether there is new data</string>
     <string name="action_save">Save</string>
     <string name="show_email">Show Email To Other Users</string>
+    <string name="name_too_long">Username too long (4-20 chars)</string>
+    <string name="name_too_short">Username too short (4-20 chars)</string>
+    <string name="about_too_long"><![CDATA[About text too long (>255 chars)]]></string>
+    <string name="email_too_long"><![CDATA[Email address too long (>50 chars)]]></string>
+    <string name="website_too_long"><![CDATA[Website URL too long (>100 chars)]]></string>
+    <string name="message_too_log"><![CDATA[Message too long (>140 chars)]]></string>
 
 </resources>
