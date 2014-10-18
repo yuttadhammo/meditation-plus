@@ -409,6 +409,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         nvp.add(new BasicNameValuePair("list_version", listVersion+""));
         nvp.add(new BasicNameValuePair("chat_version", chatVersion+""));
         nvp.add(new BasicNameValuePair("username", username));
+        nvp.add(new BasicNameValuePair("login_token", loginToken));
         nvp.add(new BasicNameValuePair("submit", "Refresh"));
 
         if(listVersion == -1 && chatVersion == -1)
@@ -422,7 +423,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
         lastSubmit = formId;
 
-        nvp.add(new BasicNameValuePair("login_token", loginToken));
         nvp.add(new BasicNameValuePair("form_id", formId));
 
         doRefresh(nvp);
@@ -826,6 +826,15 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     }
 
     private void populateOnline(JSONArray onlines) {
+
+        if(onlines.length() == 0) {
+            onlineList.setVisibility(View.GONE);
+            return;
+        }
+
+        onlineList.setVisibility(View.VISIBLE);
+
+
         String onlineText = "<b>"+getString(R.string.online)+"</b>";
 
         ArrayList<String> online = new ArrayList<String>();

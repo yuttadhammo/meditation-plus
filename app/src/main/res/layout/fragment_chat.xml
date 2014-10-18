@@ -3,7 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity$PlaceholderFragment">
-
     <LinearLayout
         android:id="@+id/chat_form"
         android:layout_alignParentBottom="true"
@@ -16,28 +15,51 @@
             android:layout_weight="1"
             android:layout_width="0dp"
             android:layout_height="@dimen/edit_text_height"
+            android:background="@android:color/white"
+            />
+        <ImageView
+            android:layout_height="match_parent"
+            android:layout_width="1dp"
+            android:background="@color/num_picker_separator"
             />
         <Button
             android:id="@+id/chat_send"
             android:text="@string/send"
             android:layout_width="wrap_content"
-            android:layout_height="@dimen/edit_text_height" />
+            android:layout_height="@dimen/edit_text_height"
+            android:background="@color/num_picker_background_color"
+            />
+        <ImageView
+            android:layout_height="match_parent"
+            android:layout_width="1dp"
+            android:background="@color/num_picker_separator"
+            />
         <Button
             android:id="@+id/smily_button"
             android:text="@string/smily"
             android:layout_width="@dimen/edit_text_height"
-            android:layout_height="@dimen/edit_text_height" />
+            android:layout_height="@dimen/edit_text_height"
+            android:background="@color/num_picker_background_color"
+            />
 
     </LinearLayout>
+    <ImageView
+        android:id="@+id/separator"
+        android:layout_above="@id/chat_form"
+        android:layout_height="1dp"
+        android:layout_width="match_parent"
+        android:background="@color/num_picker_separator"
+        />
     <ListView
         android:id="@+id/chat_list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_above="@id/chat_form"
+        android:layout_above="@id/separator"
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin"
         android:paddingBottom="@dimen/activity_vertical_margin"
+        android:background="@android:color/white"
         />
     <GridView
         android:id="@+id/smilies"
@@ -50,6 +72,5 @@
         android:layout_alignParentRight="true"
         android:layout_above="@id/chat_form"
         android:background="@android:color/white"
-
         />
 </RelativeLayout>

@@ -11,6 +11,11 @@
         android:padding="10dp"
         android:background="#FFFFFFDD"
         />
+    <ImageView
+        android:layout_height="1dp"
+        android:layout_width="match_parent"
+        android:background="@color/num_picker_separator"
+        />
     <android.support.v4.view.ViewPager
         android:id="@+id/pager"
         android:layout_width="match_parent"

@@ -11,6 +11,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         />
+    <ImageView
+        android:layout_height="1dp"
+        android:layout_width="match_parent"
+        android:background="@color/num_picker_separator"
+        />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -44,9 +49,9 @@
             />
     </LinearLayout>
     <ImageView
-        android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#AA000000"
+        android:layout_width="match_parent"
+        android:background="@color/num_picker_separator"
         />
     <ListView
         android:id="@+id/med_list"
