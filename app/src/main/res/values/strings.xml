@@ -14,6 +14,8 @@
 
     <string name="no_internet">No network connection</string>
     <string name="error">Error</string>
+    <string name="error_logging">Error logging in</string>
+    <string name="error_registering">Error registering</string>
     <string name="success">Succeeded</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
@@ -52,5 +54,6 @@
     <string name="message_too_log"><![CDATA[Message too long (>140 chars)]]></string>
     <string name="commited_x">Committed: %s</string>
     <string name="you_commit_x">You have completed %d%% of your commitment.</string>
+    <string name="action_htm">Guide</string>
 
 </resources>

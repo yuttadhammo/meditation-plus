@@ -4,9 +4,14 @@
     tools:context=".ProfileActivity" >
     <item android:id="@+id/action_save"
         android:title="@string/action_save"
-        android:orderInCategory="80"
+        android:orderInCategory="70"
         android:icon="@android:drawable/ic_menu_save"
         app:showAsAction="ifRoom" />
+    <item android:id="@+id/action_htm"
+        android:title="@string/action_htm"
+        android:orderInCategory="80"
+        android:icon="@android:drawable/ic_menu_edit"
+        app:showAsAction="never" />
     <item android:id="@+id/action_logout"
         android:title="@string/action_logout"
         android:orderInCategory="90"

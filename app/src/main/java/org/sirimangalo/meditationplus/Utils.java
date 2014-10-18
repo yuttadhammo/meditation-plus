@@ -17,6 +17,9 @@
 package org.sirimangalo.meditationplus;
 
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Color;
+import android.net.Uri;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -59,5 +62,40 @@ public class Utils {
         }
 
         return message;
+    }
+
+    public static void openHTM(Context context) {
+        String url = "http://htm.sirimangalo.org/";
+        Intent i = new Intent(Intent.ACTION_VIEW);
+        i.setData(Uri.parse(url));
+        context.startActivity(i);
+    }
+
+    public static String makeRedGreen(int percent, boolean dark) {
+        String green = "";
+
+        String red = "";
+
+        int max = 255;
+        int min = 200;
+        if(dark) {
+            max = 100;
+            min = 0;
+        }
+
+        String varColor = Integer.toHexString(min + ((100-percent)*(max-min)/100));
+        String maxColor = Integer.toHexString(max);
+        String blue = Integer.toHexString(min);
+
+        if(percent > 50) { // becoming green
+            red = varColor;
+            green = maxColor;
+
+        }
+        else { // becoming red
+            green = varColor;
+            red = maxColor;
+        }
+        return (red.length() == 1?"0":"") + red + (green.length() == 1?"0":"") + green + (blue.length() == 1?"0":"") + blue;
     }
 }

@@ -140,6 +140,9 @@ public class ProfileActivity extends ActionBarActivity {
             case R.id.action_logout:
                 doLogout();
                 return true;
+            case R.id.action_htm:
+                Utils.openHTM(this);
+                return true;
             case R.id.action_settings:
                 i = new Intent(this,PrefsActivity.class);
                 startActivity(i);

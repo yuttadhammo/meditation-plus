@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".PrefsActivity">
+    <item android:id="@+id/action_htm"
+        android:title="@string/action_htm"
+        android:orderInCategory="80"
+        android:icon="@android:drawable/ic_menu_edit"
+        app:showAsAction="never" />
+</menu>

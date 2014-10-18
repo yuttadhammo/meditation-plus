@@ -131,6 +131,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     private int refreshPeriod = 10;
     private CountDownTimer ct;
     private boolean restartTimer;
+    private int currentPosition;
+    private int lastChatTime = -1;
+    private boolean newChats = false;
+    private boolean firstPage = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -166,6 +170,13 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         mViewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
+                if(position == 1 && newChats) { // reset chat title
+                    if(actionBar.getTabAt(1) != null)
+                        actionBar.getTabAt(1).setText(getString(R.string.title_section2).toUpperCase(Locale.getDefault()));
+                    newChats = false;
+                }
+
+                currentPosition = position;
                 actionBar.setSelectedNavigationItem(position);
             }
         });
@@ -182,15 +193,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                             .setText(mSectionsPagerAdapter.getPageTitle(i))
                             .setTabListener(this));
         }
-
+        username = prefs.getString("username","");
         loginToken = prefs.getString("login_token","");
         if(loginToken.equals(""))
             showLogin();
-        else {
-            username = prefs.getString("username","");
-            password = "";
-            doRefresh(new ArrayList<NameValuePair>());
-        }
 
     }
 
@@ -212,8 +218,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             @Override
             public void onTick(long l) {
                 ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
-                if(isShowing) {
-                    doRefresh(nvp);
+                if(l < fullRefreshPeriod - refreshPeriod && isShowing) {
+                    doSubmit(null,nvp);
                 }
             }
 
@@ -225,11 +231,16 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                     restartTimer = true;
                     ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
                     nvp.add(new BasicNameValuePair("full_update", "true"));
-                    doRefresh(nvp);
+                    doSubmit(null, nvp);
                 }
             }
         };
-        doRefresh(new ArrayList<NameValuePair>());
+        loginToken = prefs.getString("login_token","");
+        if(!loginToken.equals("")) {
+            username = prefs.getString("username","");
+            password = "";
+            doSubmit(null, new ArrayList<NameValuePair>());
+        }
     }
 
     @Override
@@ -256,6 +267,9 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         Intent i;
 
         switch(id) {
+            case R.id.action_htm:
+                Utils.openHTM(this);
+                return true;
             case R.id.action_profile:
                 i = new Intent(this,ProfileActivity.class);
                 i.putExtra("username",username);
@@ -404,28 +418,30 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         Log.d(TAG, "Executing: login");
     }
 
-    public void doRefresh(ArrayList<NameValuePair> nvp) {
+    public void doSubmit(String formId, ArrayList<NameValuePair> nvp) {
 
         nvp.add(new BasicNameValuePair("list_version", listVersion+""));
         nvp.add(new BasicNameValuePair("chat_version", chatVersion+""));
-        nvp.add(new BasicNameValuePair("username", username));
-        nvp.add(new BasicNameValuePair("login_token", loginToken));
         nvp.add(new BasicNameValuePair("submit", "Refresh"));
+
+        if(formId == null)
+            lastSubmit = "";
+        else {
+            nvp.add(new BasicNameValuePair("form_id", formId));
+            lastSubmit = formId;
+        }
 
         if(listVersion == -1 && chatVersion == -1)
             nvp.add(new BasicNameValuePair("full_update", "true"));
 
-        PostTask pt = new PostTask();
-        pt.execute(nvp);
+        doPostTask(nvp);
     }
 
-    public void doSubmit(String formId, ArrayList<NameValuePair> nvp) {
-
-        lastSubmit = formId;
-
-        nvp.add(new BasicNameValuePair("form_id", formId));
-
-        doRefresh(nvp);
+    public void doPostTask(ArrayList<NameValuePair> nvp) {
+        nvp.add(new BasicNameValuePair("username", username));
+        nvp.add(new BasicNameValuePair("login_token", loginToken));
+        PostTask pt = new PostTask();
+        pt.execute(nvp);
     }
 
     /**
@@ -604,7 +620,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
                     // / grab and log data
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    //e.printStackTrace();
                     response = R.string.error;
 
                     error = e.getMessage();
@@ -623,8 +639,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             if(result.equals("success"))
                 return;
             if(result.equals("") && (lastSubmit.equals("login") || lastSubmit.equals("register"))) {
-                Log.e(TAG, "error logging in or registering");
-                showLogin();
+                Toast.makeText(context,context.getString(lastSubmit.equals("login")?R.string.error_logging:R.string.error_registering)+": "+error,Toast.LENGTH_LONG).show();
+                Log.e(TAG, "error logging in or registering: " +error);
+                if(isShowing)
+                    showLogin();
                 return;
             }
 
@@ -646,7 +664,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                     int success = Integer.parseInt(json.getString("success"));
                     if(success == -1) { // not logged in
                         Log.e(TAG, "not logged in");
-                        showLogin();
+                        if(isShowing)
+                            showLogin();
                         return;
                     }
                     else if(success == 1) {
@@ -688,25 +707,30 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                             populateCommit(jsonCommit);
                     }
                 }
-                if(json.has("login_token")) {
-                    if(lastSubmit.equals("register"))
-                        Toast.makeText(context,getString(R.string.registered),Toast.LENGTH_SHORT);
-
-                    loginToken = json.getString("login_token");
-                    SharedPreferences.Editor editor = prefs.edit();
-                    editor.putString("login_token", loginToken);
-                    editor.apply();
-                    doRefresh(new ArrayList<NameValuePair>());
-                }
                 if(json.has("logged")) {
                     populateOnline(json.getJSONArray("logged"));
 
                 }
+                if(json.has("login_token")) {
+                    if(lastSubmit.equals("register"))
+                        Toast.makeText(context,getString(R.string.registered),Toast.LENGTH_SHORT).show();
+                    loginToken = json.getString("login_token");
+                    Log.d(TAG,loginToken);
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putString("login_token", loginToken);
+                    editor.apply();
+
+                    if(isShowing && (lastSubmit.equals("register") || lastSubmit.equals("login"))) {
+                        doSubmit(null, new ArrayList<NameValuePair>());
+                        return;
+                    }
+                }
             } catch (Exception e) {
+                //Log.e(TAG,"ERROR");
                 e.printStackTrace();
             }
 
-            if(restartTimer) {
+            if(isShowing && restartTimer) {
                 restartTimer = false;
                 ct.start();
             }
@@ -756,16 +780,22 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             return;
         chatList = (ListView) findViewById(R.id.chat_list);
 
+        int newChatNo = 0;
+
+        int latestChatTime = lastChatTime;
         ArrayList<JSONObject> chatArray = new ArrayList<JSONObject>();
         for(int i = 0; i < chats.length(); i++) {
             try {
                 JSONObject chat = chats.getJSONObject(i);
+                latestChatTime = Integer.parseInt(chat.getString("time"));
+                if(latestChatTime > lastChatTime)
+                    newChatNo++;
+
                 chatArray.add(chat);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
-
         ChatAdapter adapter = new ChatAdapter(this, R.layout.chat_list_item, chatArray);
         chatList.setAdapter(adapter);
         chatList.setSelection(adapter.getCount() - 1);
@@ -782,6 +812,14 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                 }
             });
 
+        if(newChatNo > 0 && currentPosition != 1) {
+            Log.d(TAG,newChatNo+"");
+            newChats = true;
+            ActionBar actionBar = getSupportActionBar();
+            if(lastChatTime != -1 && actionBar.getTabAt(1) != null)
+                actionBar.getTabAt(1).setText(Html.fromHtml(getString(R.string.title_section2).toUpperCase(Locale.getDefault())+" ("+newChatNo+")"));
+        }
+        lastChatTime = latestChatTime;
     }
 
     private void populateMeds(JSONArray meds) {

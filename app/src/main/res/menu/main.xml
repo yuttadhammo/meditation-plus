@@ -4,6 +4,10 @@
     tools:context=".MainActivity" >
     <item android:id="@+id/action_profile"
         android:title="@string/action_profile"
+        android:orderInCategory="70"
+        app:showAsAction="never" />
+    <item android:id="@+id/action_htm"
+        android:title="@string/action_htm"
         android:orderInCategory="80"
         app:showAsAction="never" />
     <item android:id="@+id/action_logout"

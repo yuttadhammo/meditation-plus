@@ -20,6 +20,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.text.Html;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +30,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -47,7 +49,8 @@ public class CommitAdapter extends ArrayAdapter<JSONObject> {
     private final String loggedUser;
 
     private String[] dow = {"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
-    
+    private String TAG = "CommitAdapter";
+
     public CommitAdapter(MainActivity _context, int resource, List<JSONObject> items, String _loggedUser) {
         super(_context, resource, items);
         this.values = items;
@@ -154,10 +157,10 @@ public class CommitAdapter extends ArrayAdapter<JSONObject> {
 
                 if(j.equals(p.getString("creator")))
                     k = "["+j+"]";
-                if(ucomm.equals("100"))
-                    usera.add("<font color=\"#009900\">" + k + "</font>");
-                else
-                    usera.add("<font color=\"#990000\">" + k + "</font>");
+
+                String color = Utils.makeRedGreen(Integer.parseInt(ucomm), true);
+
+                usera.add("<font color=\"#"+color+"\">" + k + "</font>");
             }
 
             usersV.setText(Html.fromHtml(String.format(context.getString(R.string.commited_x),TextUtils.join(", ", usera))));
@@ -172,13 +175,14 @@ public class CommitAdapter extends ArrayAdapter<JSONObject> {
                         @Override
                         public void onClick(View view) {
                             ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
+                            nvp.add(new BasicNameValuePair("full_update", "true"));
 
                             context.doSubmit("commitform_"+cid,nvp);
                         }
                     });
                     bl.addView(commitB);
                 }
-                else if(!loggedUser.equals(p.getString("creator"))) {
+                else {
                     Button commitB = new Button(context);
                     commitB.setId(R.id.uncommit_button);
                     commitB.setText(R.string.uncommit);
@@ -186,46 +190,39 @@ public class CommitAdapter extends ArrayAdapter<JSONObject> {
                         @Override
                         public void onClick(View view) {
                             ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
+                            nvp.add(new BasicNameValuePair("full_update", "true"));
 
                             context.doSubmit("uncommitform_"+cid,nvp);
                         }
                     });
                     bl.addView(commitB);
                 }
-                else {
-                    Button commitB = new Button(context);
-                    commitB.setId(R.id.edit_commit_button);
-                    commitB.setText(R.string.edit);
-                    commitB.setOnClickListener(context);
+
+                if(loggedUser.equals(p.getString("creator"))) {
+                    Button commitB2 = new Button(context);
+                    commitB2.setId(R.id.edit_commit_button);
+                    commitB2.setText(R.string.edit);
+                    commitB2.setOnClickListener(context);
                     //bl.addView(commitB);
 
-                    Button commitB2 = new Button(context);
-                    commitB2.setId(R.id.uncommit_button);
-                    commitB2.setText(R.string.delete);
-                    commitB2.setOnClickListener(new View.OnClickListener() {
+                    Button commitB3 = new Button(context);
+                    commitB3.setId(R.id.uncommit_button);
+                    commitB3.setText(R.string.delete);
+                    commitB3.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
+                            nvp.add(new BasicNameValuePair("full_update", "true"));
 
                             context.doSubmit("delcommitform_"+cid,nvp);
                         }
                     });
-                    bl.addView(commitB2);
+                    bl.addView(commitB3);
                 }
             }
 
-            if(committed >= 100)
-                rowView.setBackgroundColor(0xFFCCFFCC);
-            else if(committed > -1) {
-                int color = 0xFFCCFFCC;
-
-                int half = committed/2;
-
-                String green = Integer.toHexString(205 + half);
-
-                String red = Integer.toHexString(255 - half);
-
-                color = Color.parseColor("#FF" + red + green + "CC");
+            if(committed > -1) {
+                int color = Color.parseColor("#FF"+Utils.makeRedGreen(committed, false));
                 rowView.setBackgroundColor(color);
             }
 
