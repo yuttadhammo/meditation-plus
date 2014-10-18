@@ -50,5 +50,7 @@
     <string name="email_too_long"><![CDATA[Email address too long (>50 chars)]]></string>
     <string name="website_too_long"><![CDATA[Website URL too long (>100 chars)]]></string>
     <string name="message_too_log"><![CDATA[Message too long (>140 chars)]]></string>
+    <string name="commited_x">Committed: %s</string>
+    <string name="you_commit_x">You have completed %d%% of your commitment.</string>
 
 </resources>

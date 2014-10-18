@@ -17,6 +17,7 @@
 package org.sirimangalo.meditationplus;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.text.Html;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -64,13 +65,14 @@ public class CommitAdapter extends ArrayAdapter<JSONObject> {
         JSONObject p = values.get(position);
 
         TextView title = (TextView) rowView.findViewById(R.id.title);
-        TextView desc = (TextView) rowView.findViewById(R.id.desc);
+        TextView descV = (TextView) rowView.findViewById(R.id.desc);
         TextView defV = (TextView) rowView.findViewById(R.id.def);
-        TextView users = (TextView) rowView.findViewById(R.id.users);
+        TextView usersV = (TextView) rowView.findViewById(R.id.users);
+        TextView youV = (TextView) rowView.findViewById(R.id.you);
 
         try {
             title.setText(p.getString("title"));
-            desc.setText(p.getString("description"));
+            descV.setText(p.getString("description"));
 
             String length = p.getString("length");
             String time = p.getString("time");
@@ -158,7 +160,7 @@ public class CommitAdapter extends ArrayAdapter<JSONObject> {
                     usera.add("<font color=\"#990000\">" + k + "</font>");
             }
 
-            users.setText(Html.fromHtml(TextUtils.join(", ",usera)));
+            usersV.setText(Html.fromHtml(String.format(context.getString(R.string.commited_x),TextUtils.join(", ", usera))));
 
             if(loggedUser != null && loggedUser.length() > 0) {
                 LinearLayout bl = (LinearLayout) rowView.findViewById(R.id.commit_buttons);
@@ -212,10 +214,25 @@ public class CommitAdapter extends ArrayAdapter<JSONObject> {
                 }
             }
 
-            if(committed == 100)
+            if(committed >= 100)
                 rowView.setBackgroundColor(0xFFCCFFCC);
-            else if(committed > -1)
-                rowView.setBackgroundColor(0xFFFFCCCC);
+            else if(committed > -1) {
+                int color = 0xFFCCFFCC;
+
+                int half = committed/2;
+
+                String green = Integer.toHexString(205 + half);
+
+                String red = Integer.toHexString(255 - half);
+
+                color = Color.parseColor("#FF" + red + green + "CC");
+                rowView.setBackgroundColor(color);
+            }
+
+            if(committed != -1) {
+                youV.setText(String.format(context.getString(R.string.you_commit_x), committed));
+                youV.setVisibility(View.VISIBLE);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
