@@ -19,13 +19,26 @@
         android:layout_height="match_parent"
         android:padding="@dimen/med_cell_padding"
         />
-    <TextView
-        android:id="@+id/one_med"
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_weight="1"
-        android:gravity="center"
+        android:orientation="horizontal"
         android:layout_height="match_parent"
+        android:gravity="center"
         android:padding="@dimen/med_cell_padding"
-        />
-
+        >
+        <ImageView
+            android:id="@+id/one_flag"
+            android:layout_width="wrap_content"
+            android:gravity="center"
+            android:layout_height="24dp"
+            android:visibility="gone"
+            />
+        <TextView
+            android:id="@+id/one_med"
+            android:layout_width="wrap_content"
+            android:gravity="center"
+            android:layout_height="match_parent"
+            />
+    </LinearLayout>
 </LinearLayout>

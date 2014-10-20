@@ -17,10 +17,12 @@
 package org.sirimangalo.meditationplus;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.json.JSONObject;
@@ -43,6 +45,7 @@ public class MedAdapter extends ArrayAdapter<JSONObject> {
         super(_context, resource, items);
         this.values = items;
         context = _context;
+
     }
 
     @Override
@@ -57,6 +60,7 @@ public class MedAdapter extends ArrayAdapter<JSONObject> {
         TextView walk = (TextView) rowView.findViewById(R.id.one_walking);
         TextView sit = (TextView) rowView.findViewById(R.id.one_sitting);
         TextView name = (TextView) rowView.findViewById(R.id.one_med);
+        ImageView flag = (ImageView) rowView.findViewById(R.id.one_flag);
 
         try {
             String wo = p.getString("walking");
@@ -89,6 +93,12 @@ public class MedAdapter extends ArrayAdapter<JSONObject> {
             walk.setText(ws);
             sit.setText(ss);
             name.setText(p.getString("username"));
+
+            if(p.has("country")) {
+                int id = context.getResources().getIdentifier("flag_"+p.getString("country").toLowerCase(),"drawable",context.getPackageName());
+                flag.setImageResource(id);
+                flag.setVisibility(View.VISIBLE);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
