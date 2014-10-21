@@ -2,6 +2,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".ProfileActivity" >
+    <item android:id="@+id/action_edit"
+        android:title="@string/action_edit"
+        android:orderInCategory="70"
+        android:icon="@android:drawable/ic_menu_edit"
+        app:showAsAction="ifRoom" />
     <item android:id="@+id/action_htm"
         android:title="@string/action_htm"
         android:orderInCategory="80"

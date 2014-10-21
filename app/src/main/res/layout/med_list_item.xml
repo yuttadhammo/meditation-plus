@@ -20,6 +20,7 @@
         android:padding="@dimen/med_cell_padding"
         />
     <LinearLayout
+        android:id="@+id/name_shell"
         android:layout_width="0dp"
         android:layout_weight="1"
         android:orientation="horizontal"

@@ -17,12 +17,14 @@
 package org.sirimangalo.meditationplus;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.json.JSONObject;
@@ -37,11 +39,11 @@ public class MedAdapter extends ArrayAdapter<JSONObject> {
 
 
     private final List<JSONObject> values;
-    private final Context context;
+    private final MainActivity context;
 
     private String TAG = "MedAdapter";
 
-    public MedAdapter(Context _context, int resource, List<JSONObject> items) {
+    public MedAdapter(MainActivity _context, int resource, List<JSONObject> items) {
         super(_context, resource, items);
         this.values = items;
         context = _context;
@@ -61,6 +63,7 @@ public class MedAdapter extends ArrayAdapter<JSONObject> {
         TextView sit = (TextView) rowView.findViewById(R.id.one_sitting);
         TextView name = (TextView) rowView.findViewById(R.id.one_med);
         ImageView flag = (ImageView) rowView.findViewById(R.id.one_flag);
+        LinearLayout shell = (LinearLayout) rowView.findViewById(R.id.name_shell);
 
         try {
             String wo = p.getString("walking");
@@ -92,13 +95,24 @@ public class MedAdapter extends ArrayAdapter<JSONObject> {
 
             walk.setText(ws);
             sit.setText(ss);
-            name.setText(p.getString("username"));
 
             if(p.has("country")) {
                 int id = context.getResources().getIdentifier("flag_"+p.getString("country").toLowerCase(),"drawable",context.getPackageName());
                 flag.setImageResource(id);
                 flag.setVisibility(View.VISIBLE);
             }
+
+            final String username = p.getString("username");
+            final String edit = p.getString("can_edit");
+            name.setText(username);
+
+            shell.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    context.showProfile(username);
+                }
+            });
+
         } catch (Exception e) {
             e.printStackTrace();
         }

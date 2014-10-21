@@ -17,10 +17,21 @@
 package org.sirimangalo.meditationplus;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.TextPaint;
+import android.text.TextUtils;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
+import android.text.style.UnderlineSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,11 +50,11 @@ public class ChatAdapter extends ArrayAdapter<JSONObject> {
 
 
     private final List<JSONObject> values;
-    private final Context context;
+    private final MainActivity context;
 
     private String TAG = "ChatAdapter";
 
-    public ChatAdapter(Context _context, int resource, List<JSONObject> items) {
+    public ChatAdapter(MainActivity _context, int resource, List<JSONObject> items) {
         super(_context, resource, items);
         this.values = items;
         context = _context;
@@ -94,17 +105,47 @@ public class ChatAdapter extends ArrayAdapter<JSONObject> {
             TextView mess = (TextView) rowView.findViewById(R.id.message);
             if (mess != null) {
 
+                final String username = p.getString("username");
+
                 String message = Utils.replaceSmilies(context, p.getString("message"));
 
-                String text = "<b>"+(p.getString("me").equals("true")?"<font color=\"blue\">":"")+p.getString("username")+(p.getString("me").equals("true")?"</font>":"")+"</b>: "+message;
-                Spanned html = Html.fromHtml(text,imgGetter,null);
+                Spannable user = new SpannableString(username+": ");
 
-                mess.setText(html);
+                user.setSpan(new StyleSpan(Typeface.BOLD), 0, user.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                ClickableSpan span = new ClickableSpan() {
+
+                    @Override
+                    public void onClick(View widget) {
+                        context.showProfile(username);
+                    }
+
+                };
+                user.setSpan(span, 0, user.length(),Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                user.setSpan(new UnderlineSpan() {
+                    public void updateDrawState(TextPaint tp) {
+                        tp.setUnderlineText(false);
+                    }
+                }, 0, user.length(), 0);
+
+                if(p.getString("me").equals("true"))
+                    user.setSpan(new ForegroundColorSpan(Color.parseColor("#" + hexTransparency + "0000FF")), 0, user.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                else
+                    user.setSpan(new ForegroundColorSpan(Color.parseColor("#" + hexTransparency + "000000")), 0, user.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+
+                Spanned html = Html.fromHtml(message,imgGetter,null);
+
+                CharSequence full = TextUtils.concat(user,html);
+
                 mess.setTextColor(transparency);
+                mess.setText(full);
+                mess.setMovementMethod(LinkMovementMethod.getInstance());
+
             }
 
-            TextView cid = (TextView) rowView.findViewById(R.id.cid);
-            cid.setText(p.getString("cid"));
+            mess.setTag(p.getString("cid"));
 
         } catch (JSONException e) {
             e.printStackTrace();

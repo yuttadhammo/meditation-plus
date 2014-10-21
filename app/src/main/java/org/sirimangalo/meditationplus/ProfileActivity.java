@@ -17,6 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -55,6 +56,8 @@ public class ProfileActivity extends ActionBarActivity {
     private String loginToken;
     private ConnectivityManager cnnxManager;
 
+    private String profileName;
+
     private String lastSubmit;
 
     HttpClient httpclient;
@@ -73,6 +76,8 @@ public class ProfileActivity extends ActionBarActivity {
     private String[] cnames;
     private Context context;
     private String uid;
+    private boolean canEdit;
+    private ImageView flagView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,24 +91,37 @@ public class ProfileActivity extends ActionBarActivity {
 
         cnnxManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 
+        // Set up the action bar.
+        final ActionBar actionBar = getSupportActionBar();
+        actionBar.setHomeButtonEnabled(true);
+        actionBar.setDisplayHomeAsUpEnabled(true);
+
+        // pref variables
+
+        username = prefs.getString("username","");
+        loginToken = prefs.getString("login_token","");
+
+        cnames = getResources().getStringArray(R.array.country_names);
+        ccodes = getResources().getStringArray(R.array.country_codes);
+
+        // intent specific variables
+
         if(getIntent().hasExtra("edit"))
             setContentView(R.layout.activity_profile_edit);
         else
             setContentView(R.layout.activity_profile);
 
-        // Set up the action bar.
-        final ActionBar actionBar = getSupportActionBar();
-        actionBar.setHomeButtonEnabled(true);
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        username = prefs.getString("username","");
-        loginToken = prefs.getString("login_token","");
-        oldName = username;
+        canEdit = getIntent().getBooleanExtra("can_edit",false);
 
-        cnames = getResources().getStringArray(R.array.country_names);
-        ccodes = getResources().getStringArray(R.array.country_codes);
+        if(getIntent().hasExtra("profile_name"))
+            profileName = getIntent().getStringExtra("profile_name");
+        else profileName = username;
 
-        doSubmit("",new ArrayList<NameValuePair>(), username);
+        oldName = profileName;
 
+        // get profile
+
+        doSubmit("",new ArrayList<NameValuePair>(), profileName);
     }
     @Override
     protected void onResume() {
@@ -122,6 +140,8 @@ public class ProfileActivity extends ActionBarActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         if(getIntent().hasExtra("edit"))
             getMenuInflater().inflate(R.menu.profile_edit, menu);
+        else if(canEdit)
+            getMenuInflater().inflate(R.menu.profile_can_edit, menu);
         else
             getMenuInflater().inflate(R.menu.profile, menu);
         return true;
@@ -151,8 +171,13 @@ public class ProfileActivity extends ActionBarActivity {
                 doSaveEdit();
                 return true;
             case R.id.action_edit:
+                if(!canEdit)
+                    return true;
+
                 i = new Intent(this,ProfileActivity.class);
                 i.putExtra("edit",true);
+                i.putExtra("profile_name",profileName);
+                i.putExtra("can_edit",canEdit);
                 i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(i);
                 return true;
@@ -346,7 +371,10 @@ public class ProfileActivity extends ActionBarActivity {
         protected void onPostExecute(String result) {
             if(result.equals("success")) {
                 if(lastSubmit.equals("profile")) {
+
                     Intent i = new Intent(context, ProfileActivity.class);
+                    i.putExtra("profile_name",profileName);
+                    i.putExtra("can_edit",canEdit);
                     i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(i);
                 }
@@ -372,6 +400,8 @@ public class ProfileActivity extends ActionBarActivity {
                     else if(success == 1) {
                         if(lastSubmit.equals("profile")) {
                             Intent i = new Intent(context, ProfileActivity.class);
+                            i.putExtra("profile_name",profileName);
+                            i.putExtra("can_edit",canEdit);
                             i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                             startActivity(i);
                         }
@@ -389,6 +419,7 @@ public class ProfileActivity extends ActionBarActivity {
 
     private void populateFields(JSONObject jsonFields, boolean isAdmin) {
         titleView = (TextView) findViewById(R.id.profile_title);
+        flagView = (ImageView) findViewById(R.id.profile_flag);
         nameView = (TextView) findViewById(R.id.name_field);
         aboutView = (TextView) findViewById(R.id.about_field);
         emailView = (TextView) findViewById(R.id.email_field);
@@ -411,7 +442,7 @@ public class ProfileActivity extends ActionBarActivity {
             int idx = 0;
 
             for(int i = 0; i < ccodes.length; i++) {
-                if(ccodes[i].equals(jsonFields.getString("country"))){
+                if(jsonFields.has("country") && ccodes[i].equals(jsonFields.getString("country"))){
                     cname = cnames[i];
                     idx = i;
                     break;
@@ -426,6 +457,11 @@ public class ProfileActivity extends ActionBarActivity {
                 ((Spinner) countryView).setSelection(idx);
             }
             else {
+                if(jsonFields.has("country")) {
+                    int fid = getResources().getIdentifier("flag_"+jsonFields.getString("country").toLowerCase(),"drawable", getPackageName());
+                    flagView.setImageResource(fid);
+                    flagView.setVisibility(View.VISIBLE);
+                }
                 ((TextView)countryView).setText(cname);
             }
 

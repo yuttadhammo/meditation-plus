@@ -4,16 +4,29 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     >
-    <TextView
-        android:id="@+id/profile_title"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textStyle="bold"
-        android:textSize="30sp"
-        android:background="#FF666666"
-        android:textColor="@android:color/white"
+        android:orientation="horizontal"
+        android:background="#FF999999"
         android:padding="10dp"
-        />
+        >
+        <ImageView
+            android:id="@+id/profile_flag"
+            android:visibility="gone"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginRight="6dp"
+            />
+        <TextView
+            android:id="@+id/profile_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:textSize="26sp"
+            android:textColor="@android:color/white"
+            />
+    </LinearLayout>
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"

@@ -20,6 +20,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -35,7 +37,16 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextPaint;
 import android.text.TextUtils;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
+import android.text.style.UnderlineSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -106,6 +117,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     private ListView medList;
     private ListView commitList;
     private TextView onlineList;
+    private static LinearLayout smiliesShell;
 
     private boolean isShowing = false;
 
@@ -135,6 +147,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     private int lastChatTime = -1;
     private boolean newChats = false;
     private boolean firstPage = true;
+
+    private boolean isAdmin = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -209,7 +223,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         restartTimer = true;
 
         refreshPeriod = Integer.parseInt(prefs.getString("refresh_period","10"))*1000;
+        refreshPeriod = Math.max(refreshPeriod, 10);
+
         fullRefreshPeriod = Integer.parseInt(prefs.getString("full_refresh_period","60"))*1000;
+        fullRefreshPeriod = Math.max(fullRefreshPeriod,60);
 
         if(ct != null)
             ct.cancel();
@@ -271,9 +288,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                 Utils.openHTM(this);
                 return true;
             case R.id.action_profile:
-                i = new Intent(this,ProfileActivity.class);
-                i.putExtra("username",username);
-                startActivity(i);
+                showProfile(username);
                 return true;
             case R.id.action_logout:
                 doLogout();
@@ -340,10 +355,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                 doSubmit("cancelform", nvp);
                 break;
             case R.id.smily_button:
-                if(smilies.getVisibility() == View.GONE)
-                    smilies.setVisibility(View.VISIBLE);
+                if(smiliesShell.getVisibility() == View.GONE)
+                    smiliesShell.setVisibility(View.VISIBLE);
                 else
-                    smilies.setVisibility(View.GONE);
+                    smiliesShell.setVisibility(View.GONE);
                 break;
             case R.id.chat_text:
                 singleClick++;
@@ -357,6 +372,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                 };
 
                 if (singleClick == 1) {
+                    smiliesShell.setVisibility(View.GONE);
                     //Single click
                     handler.postDelayed(r, 250);
                 } else if (singleClick == 2) {
@@ -364,8 +380,12 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                     singleClick = 0;
                     ((EditText) findViewById(R.id.chat_text)).setText("");
                 }
+            case R.id.new_commit:
+                Intent i = new Intent(this,CommitActivity.class);
+                startActivity(i);
+                break;
             default:
-                smilies.setVisibility(View.GONE);
+                smiliesShell.setVisibility(View.GONE);
         }
     }
 
@@ -528,18 +548,23 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
                     chatInput.setOnClickListener(context);
 
+                    smiliesShell = (LinearLayout) rootView.findViewById(R.id.smilies_shell);
+
                     smilies = (GridView) rootView.findViewById(R.id.smilies);
                     smilies.setAdapter(new ImageAdapter(context));
                     smilies.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                             String[] s = context.getResources().getStringArray(R.array.smily_tags);
                             chatInput.setText(chatInput.getText()+s[position]);
-                            smilies.setVisibility(View.GONE);
+                            smiliesShell.setVisibility(View.GONE);
                         }
                     });
                     break;
                 case 3:
                     rootView = inflater.inflate(R.layout.fragment_commit, container, false);
+                    Button newCommit = (Button) rootView.findViewById(R.id.new_commit);
+                    newCommit.setOnClickListener(context);
+
                     break;
                 default:
                     rootView = inflater.inflate(R.layout.fragment_main, container, false);
@@ -673,6 +698,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                             ((EditText) findViewById(R.id.chat_text)).setText("");
                     }
                 }
+                if(json.has("admin")) {
+                    if(json.get("admin") instanceof String)
+                        isAdmin = json.getString("admin").equals("true");
+                }
                 if(json.has("chat")) {
                     if(json.get("chat") instanceof JSONArray)
                         jsonChats = json.getJSONArray("chat");
@@ -714,11 +743,13 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                 if(json.has("login_token")) {
                     if(lastSubmit.equals("register"))
                         Toast.makeText(context,getString(R.string.registered),Toast.LENGTH_SHORT).show();
-                    loginToken = json.getString("login_token");
-                    Log.d(TAG,loginToken);
-                    SharedPreferences.Editor editor = prefs.edit();
-                    editor.putString("login_token", loginToken);
-                    editor.apply();
+
+                    if(!loginToken.equals(json.getString("login_token"))) {
+                        loginToken = json.getString("login_token");
+                        SharedPreferences.Editor editor = prefs.edit();
+                        editor.putString("login_token", loginToken);
+                        editor.apply();
+                    }
 
                     if(isShowing && (lastSubmit.equals("register") || lastSubmit.equals("login"))) {
                         doSubmit(null, new ArrayList<NameValuePair>());
@@ -803,17 +834,14 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             chatList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                 @Override
                 public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    TextView cid = (TextView) view.findViewById(R.id.cid);
-                    Log.d(TAG,"long click: "+cid.getText());
+                    String cid = (String) view.findViewById(R.id.message).getTag();
                     ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
-                    Log.d(TAG,cid.getText()+"");
-                    doSubmit("delchat_" + cid.getText(), nvp);
+                    doSubmit("delchat_" + cid, nvp);
                     return true;
                 }
             });
 
         if(newChatNo > 0 && currentPosition != 1) {
-            Log.d(TAG,newChatNo+"");
             newChats = true;
             ActionBar actionBar = getSupportActionBar();
             if(lastChatTime != -1 && actionBar.getTabAt(1) != null)
@@ -872,13 +900,35 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
         onlineList.setVisibility(View.VISIBLE);
 
+        ArrayList<String> onlineArray = new ArrayList<String>();
 
-        String onlineText = "<b>"+getString(R.string.online)+"</b>";
+        // collect into array
 
-        ArrayList<String> online = new ArrayList<String>();
         for(int i = 0; i < onlines.length(); i++) {
             try {
-                String oneOn = onlines.getString(i).replaceFirst("\\^.*", "");
+                onlineArray.add(onlines.getString(i).replaceFirst("\\^.*", ""));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        String text = getString(R.string.online)+" ";
+
+        // add spans
+
+        int pos = text.length(); // start after "Online: "
+
+        text += TextUtils.join(", ", onlineArray);
+        Spannable span = new SpannableString(text);
+
+        span.setSpan(new StyleSpan(Typeface.BOLD), 0, pos, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE); // bold the "Online: "
+
+        for(int i = 0; i < onlineArray.size(); i++) {
+            try {
+
+                final String oneOn = onlineArray.get(i);
+
+                int end = pos+oneOn.length();
 
                 boolean isMed = false;
 
@@ -888,18 +938,43 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                     if(username.equals(oneOn))
                         isMed = true;
                 }
-                online.add("<font color=\"" + (isMed ? "#009900" : "#FF9900") + "\">" + oneOn + "</font>");
+
+                ClickableSpan clickable = new ClickableSpan() {
+
+                    @Override
+                    public void onClick(View widget) {
+                        showProfile(oneOn);
+                    }
+
+                };
+                span.setSpan(clickable, pos, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                span.setSpan(new UnderlineSpan() {
+                    public void updateDrawState(TextPaint tp) {
+                        tp.setUnderlineText(false);
+                    }
+                }, pos, end, 0);
+
+                span.setSpan(new ForegroundColorSpan(isMed ? 0xFF009900 : 0xFFFF9900), pos, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                pos += oneOn.length() + 2;
 
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
-
-        onlineText += " "+TextUtils.join(", ",online);
-
-        onlineList.setText(Html.fromHtml(onlineText));
+        onlineList.setText(span);
+        onlineList.setMovementMethod(LinkMovementMethod.getInstance());
 
     }
+
+    public void showProfile(String username) {
+        Intent i = new Intent(context,ProfileActivity.class);
+        i.putExtra("profile_name",username);
+        i.putExtra("can_edit",username.equals(username) || isAdmin);
+        context.startActivity(i);
+    }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -919,4 +994,5 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
+
 }

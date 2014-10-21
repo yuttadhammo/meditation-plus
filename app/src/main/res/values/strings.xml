@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">MeditationPlus</string>
+    <string name="app_name">Meditation+</string>
+    <string name="profile">Profile</string>
+    <string name="new_commit">New Commitment</string>
+    <string name="preferences">Preferences</string>
     <string name="title_section1">Meditation</string>
     <string name="title_section2">Chat</string>
     <string name="title_section3">Commit</string>
@@ -24,7 +27,7 @@
     <string name="commit">Commit</string>
     <string name="start">Start</string>
     <string name="empty_list">No one is currently meditating.</string>
-    <string name="online">Online:</string>
+    <string name="online">Online: </string>
     <string name="uncommit">Uncommit</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
@@ -55,5 +58,18 @@
     <string name="commited_x">Committed: %s</string>
     <string name="you_commit_x">You have completed %d%% of your commitment.</string>
     <string name="action_htm">Guide</string>
+    <string name="type_commit">Type of commitment:</string>
+    <string name="type_total">Total</string>
+    <string name="type_repeat">Repeat</string>
+    <string name="dow">Day of Week:</string>
+    <string name="period">Period:</string>
+    <string name="desc">Description:</string>
+    <string name="title">Title:</string>
+    <string name="dom">Day of Month:</string>
+    <string name="doy">Day of Year:</string>
+    <string name="spec_time">Specific Time</string>
+    <string name="time">Time:</string>
+    <string name="utc">(24-hour time UTC)</string>
+    <string name="amount">Amount</string>
 
 </resources>

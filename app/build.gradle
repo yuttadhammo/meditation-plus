@@ -8,8 +8,8 @@ android {
         applicationId "org.sirimangalo.meditationplus"
         minSdkVersion 11
         targetSdkVersion 20
-        versionCode 13
-        versionName "0.6.5"
+        versionCode 14
+        versionName "0.6.6"
     }
     buildTypes {
         release {
