@@ -4,15 +4,22 @@
     android:layout_width="match_parent"
     android:orientation="vertical"
     >
-    <TextView
-        android:text="@string/online"
-        android:id="@+id/online"
+    <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:padding="10dp"
         android:background="#FFFFFFDD"
+        >
+        <TextView
+        android:text="@string/online"
+        android:id="@+id/online"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:padding="6dp"
+        android:scrollHorizontally="true"
+        android:singleLine="true"
         />
+    </HorizontalScrollView>
     <ImageView
         android:layout_height="1dp"
         android:layout_width="match_parent"

@@ -17,14 +17,12 @@
 package org.sirimangalo.meditationplus;
 
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.drawable.Drawable;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.json.JSONObject;
@@ -35,15 +33,17 @@ import java.util.List;
  * Created by noah on 10/15/14.
  */
 
-public class MedAdapter extends ArrayAdapter<JSONObject> {
+public class AdapterMed extends ArrayAdapter<JSONObject> {
 
 
     private final List<JSONObject> values;
-    private final MainActivity context;
+    private final ActivityMain context;
 
-    private String TAG = "MedAdapter";
+    private int MAX_AGE = 60*60*12; // one day
 
-    public MedAdapter(MainActivity _context, int resource, List<JSONObject> items) {
+    private String TAG = "AdapterMed";
+
+    public AdapterMed(ActivityMain _context, int resource, List<JSONObject> items) {
         super(_context, resource, items);
         this.values = items;
         context = _context;
@@ -55,7 +55,7 @@ public class MedAdapter extends ArrayAdapter<JSONObject> {
 
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-        View rowView = inflater.inflate(R.layout.med_list_item, parent, false);
+        View rowView = inflater.inflate(R.layout.list_item_med, parent, false);
 
         JSONObject p = values.get(position);
 
@@ -63,7 +63,6 @@ public class MedAdapter extends ArrayAdapter<JSONObject> {
         TextView sit = (TextView) rowView.findViewById(R.id.one_sitting);
         TextView name = (TextView) rowView.findViewById(R.id.one_med);
         ImageView flag = (ImageView) rowView.findViewById(R.id.one_flag);
-        LinearLayout shell = (LinearLayout) rowView.findViewById(R.id.name_shell);
 
         try {
             String wo = p.getString("walking");
@@ -71,27 +70,52 @@ public class MedAdapter extends ArrayAdapter<JSONObject> {
             int wi = Integer.parseInt(wo);
             int si = Integer.parseInt(so);
             int ti = Integer.parseInt(p.getString("start"));
+            int ei = Integer.parseInt(p.getString("end"));
 
             long nowL = System.currentTimeMillis()/1000;
 
             int now = (int) nowL;
-            int secs = now - ti;
+
+            boolean finished = false;
+
 
             String ws = "0";
             String ss = "0";
 
-            if(secs > wi * 60) { //walking done
-                int ssecs = secs - (wi * 60);
-                if(ssecs < si * 60) // still sitting
-                    ss = Integer.toString(Math.round(si - ssecs/60));
-            }
-            else { // still walking
-                ws = Integer.toString(Math.round(wi - secs/60));
-                ss = so;
-            }
+            if(ei > now) {
 
-            ws += "/"+wo;
-            ss += "/"+so;
+                int secs = now - ti;
+
+                if (secs > wi * 60) { //walking done
+                    int ssecs = secs - (wi * 60);
+                    if (ssecs < si * 60) // still sitting
+                        ss = Integer.toString(Math.round(si - ssecs / 60));
+                } else { // still walking
+                    ws = Integer.toString(Math.round(wi - secs / 60));
+                    ss = so;
+                }
+
+                ws += "/" + wo;
+                ss += "/" + so;
+            }
+            else {
+                ws = wo;
+                ss = so;
+
+                int age = 255-(now - ei)*255/MAX_AGE;
+
+                String ageColor = Integer.toHexString(age);
+
+                if(ageColor.length() == 1)
+                    ageColor = "0"+ageColor;
+
+                int alpha = Color.parseColor("#"+ageColor+"000000");
+
+                walk.setTextColor(alpha);
+                sit.setTextColor(alpha);
+                name.setTextColor(alpha);
+
+            }
 
             walk.setText(ws);
             sit.setText(ss);
@@ -106,7 +130,7 @@ public class MedAdapter extends ArrayAdapter<JSONObject> {
             final String edit = p.getString("can_edit");
             name.setText(username);
 
-            shell.setOnClickListener(new View.OnClickListener() {
+            name.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     context.showProfile(username);

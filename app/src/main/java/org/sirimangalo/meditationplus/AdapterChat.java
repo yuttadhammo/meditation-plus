@@ -17,7 +17,6 @@
 package org.sirimangalo.meditationplus;
 
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
@@ -46,15 +45,15 @@ import java.util.List;
 /**
  * Created by noah on 10/15/14.
  */
-public class ChatAdapter extends ArrayAdapter<JSONObject> {
+public class AdapterChat extends ArrayAdapter<JSONObject> {
 
 
     private final List<JSONObject> values;
-    private final MainActivity context;
+    private final ActivityMain context;
 
-    private String TAG = "ChatAdapter";
+    private String TAG = "AdapterChat";
 
-    public ChatAdapter(MainActivity _context, int resource, List<JSONObject> items) {
+    public AdapterChat(ActivityMain _context, int resource, List<JSONObject> items) {
         super(_context, resource, items);
         this.values = items;
         context = _context;
@@ -77,7 +76,7 @@ public class ChatAdapter extends ArrayAdapter<JSONObject> {
 
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-        View rowView = inflater.inflate(R.layout.chat_list_item, parent, false);
+        View rowView = inflater.inflate(R.layout.list_item_chat, parent, false);
 
         JSONObject p = values.get(position);
         try {

@@ -17,17 +17,13 @@
 package org.sirimangalo.meditationplus;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.graphics.Typeface;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -64,30 +60,19 @@ import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
 
-public class MainActivity extends ActionBarActivity implements ActionBar.TabListener,View.OnClickListener {
+public class ActivityMain extends ActionBarActivity implements ActionBar.TabListener,View.OnClickListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -104,14 +89,13 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
      */
     ViewPager mViewPager;
 
-    private static String TAG = "MainActivity";
+    private static String TAG = "ActivityMain";
     private static SharedPreferences prefs;
     private int LOGIN_CODE = 555;
 
     private String username;
     private String password;
     private String loginToken;
-    private ConnectivityManager cnnxManager;
 
     private ListView chatList;
     private ListView medList;
@@ -126,8 +110,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     private int logVersion = -1;
     private int commitVersion = -1;
 
-    HttpClient httpclient;
-    private static MainActivity context;
+    private static ActivityMain context;
     private static NumberPicker sittingPicker;
     private static NumberPicker walkingPicker;
     private int refreshCount = 0;
@@ -149,6 +132,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     private boolean firstPage = true;
 
     private boolean isAdmin = false;
+    private PostTaskRunner postTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -156,12 +140,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
         context = this;
 
-        httpclient = new DefaultHttpClient();
-
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
-        cnnxManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-
+        postTask = new PostTaskRunner(postHandler, this);
+        
         setContentView(R.layout.activity_main);
 
         onlineList = (TextView) findViewById(R.id.online);
@@ -294,7 +276,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                 doLogout();
                 return true;
             case R.id.action_settings:
-                i = new Intent(this,PrefsActivity.class);
+                i = new Intent(this,ActivityPrefs.class);
+                i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(i);
                 return true;
         }
@@ -326,6 +309,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
         switch(id) {
             case R.id.chat_send:
+                smiliesShell.setVisibility(View.GONE);
                 EditText message = (EditText) findViewById(R.id.chat_text);
                 String messageT = message.getText().toString();
                 if(messageT.length() > 140) {
@@ -361,6 +345,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                     smiliesShell.setVisibility(View.GONE);
                 break;
             case R.id.chat_text:
+                smiliesShell.setVisibility(View.GONE);
                 singleClick++;
                 Handler handler = new Handler();
                 Runnable r = new Runnable() {
@@ -372,7 +357,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                 };
 
                 if (singleClick == 1) {
-                    smiliesShell.setVisibility(View.GONE);
                     //Single click
                     handler.postDelayed(r, 250);
                 } else if (singleClick == 2) {
@@ -380,18 +364,22 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                     singleClick = 0;
                     ((EditText) findViewById(R.id.chat_text)).setText("");
                 }
+                break;
             case R.id.new_commit:
-                Intent i = new Intent(this,CommitActivity.class);
+                Intent i = new Intent(this,ActivityCommit.class);
+                i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(i);
                 break;
             default:
                 smiliesShell.setVisibility(View.GONE);
+                break;
         }
     }
 
 
     private void showLogin() {
-        Intent i = new Intent(this,LoginActivity.class);
+        Intent i = new Intent(this,ActivityLogin.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivityForResult(i, LOGIN_CODE);
     }
 
@@ -405,14 +393,14 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
         lastSubmit = "login";
 
-        PostTask pt = new PostTask();
-        pt.execute(nvp);
+        postTask.doPostTask(nvp);
+
         Log.d(TAG, "Executing: login");
     }
 
     private void doLogout() {
 
-        httpclient = new DefaultHttpClient(); // new session
+        postTask = new PostTaskRunner(postHandler, this); // new session
 
         username = "";
         password = "";
@@ -433,8 +421,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
         lastSubmit = "register";
 
-        PostTask pt = new PostTask();
-        pt.execute(nvp);
+        postTask.doPostTask(nvp);
+;
         Log.d(TAG, "Executing: login");
     }
 
@@ -460,8 +448,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     public void doPostTask(ArrayList<NameValuePair> nvp) {
         nvp.add(new BasicNameValuePair("username", username));
         nvp.add(new BasicNameValuePair("login_token", loginToken));
-        PostTask pt = new PostTask();
-        pt.execute(nvp);
+        postTask.doPostTask(nvp);
     }
 
     /**
@@ -551,7 +538,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                     smiliesShell = (LinearLayout) rootView.findViewById(R.id.smilies_shell);
 
                     smilies = (GridView) rootView.findViewById(R.id.smilies);
-                    smilies.setAdapter(new ImageAdapter(context));
+                    smilies.setAdapter(new AdapterImage(context));
                     smilies.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                             String[] s = context.getResources().getStringArray(R.array.smily_tags);
@@ -596,81 +583,23 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         }
     }
 
-    private class PostTask extends AsyncTask<ArrayList<NameValuePair>, String, String> {
+    Handler postHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
 
-        int response = R.string.success;
-        String error = "";
-        String stringNote = "";
+            String result = (String) msg.obj;
+            
+            if(msg.what != 1) {
+                Toast.makeText(context, result, Toast.LENGTH_SHORT).show();
 
-        @Override
-        protected String doInBackground(ArrayList<NameValuePair>... arg0) {
-            String responseString = "";
-            for(ArrayList<NameValuePair> nameValuePair : arg0) {
-                try {
-                    // if we have no data connection, no point in proceeding.
-                    NetworkInfo ni = cnnxManager.getActiveNetworkInfo();
-                    if (ni == null || !ni.isAvailable() || !ni.isConnected()) {
-                        response = R.string.no_internet;
-                        return "";
-                    } else {
+                if(lastSubmit.equals("login") || lastSubmit.equals("register") && isShowing)
+                    showLogin();
 
-                        // Create a new HttpClient and Post Header
-                        HttpPost httppost = new HttpPost("http://meditation.sirimangalo.org/post.php");
-
-                        try {
-                            httppost.setEntity(new UrlEncodedFormEntity(nameValuePair));
-
-                            // Execute HTTP Post Request
-                            HttpResponse aresponse = httpclient.execute(httppost);
-                            StatusLine statusLine = aresponse.getStatusLine();
-
-                            HttpEntity data = aresponse.getEntity();
-                            if(statusLine.getStatusCode() == HttpStatus.SC_OK){
-                                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                                aresponse.getEntity().writeTo(out);
-                                out.close();
-                                responseString = out.toString();
-                            } else{
-                                //Closes the connection.
-                                aresponse.getEntity().getContent().close();
-                                throw new IOException(statusLine.getReasonPhrase());
-                            }
-
-                        } catch (ClientProtocolException e) {
-                            error = e.getMessage();
-                        } catch (IOException e) {
-                            error = e.getMessage();
-                        }
-                    }
-
-                    // / grab and log data
-                } catch (Exception e) {
-                    //e.printStackTrace();
-                    response = R.string.error;
-
-                    error = e.getMessage();
-                    return "";
-                }
+                return;
             }
-            return responseString;
-        }
-        @Override
-        protected  void onPreExecute()
-        {
-        }
 
-        @Override
-        protected void onPostExecute(String result) {
             if(result.equals("success"))
                 return;
-            if(result.equals("") && (lastSubmit.equals("login") || lastSubmit.equals("register"))) {
-                Toast.makeText(context,context.getString(lastSubmit.equals("login")?R.string.error_logging:R.string.error_registering)+": "+error,Toast.LENGTH_LONG).show();
-                Log.e(TAG, "error logging in or registering: " +error);
-                if(isShowing)
-                    showLogin();
-                return;
-            }
-
 
             try {
                 //Log.d(TAG,"result:"+result);
@@ -766,9 +695,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                 ct.start();
             }
         }
-
-
-    }
+    };
 
     private void populateLog(JSONArray jsonLogged) {
         Calendar utc = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
@@ -787,7 +714,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             }
             for(int i = 0; i < jsonLogged.length(); i++){
                 int height = (int) Math.ceil(max_height*jsonLogged.getInt(i)/max_hour);
-                LinearLayout ll = (LinearLayout) context.getLayoutInflater().inflate(R.layout.log_cell, null);
+                LinearLayout ll = (LinearLayout) context.getLayoutInflater().inflate(R.layout.list_item_log, null);
 
                 ImageView iv = (ImageView) ll.findViewById(R.id.min_cell);
                 iv.getLayoutParams().height = height;
@@ -827,7 +754,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
                 e.printStackTrace();
             }
         }
-        ChatAdapter adapter = new ChatAdapter(this, R.layout.chat_list_item, chatArray);
+        AdapterChat adapter = new AdapterChat(this, R.layout.list_item_chat, chatArray);
         chatList.setAdapter(adapter);
         chatList.setSelection(adapter.getCount() - 1);
         if(admin)
@@ -868,7 +795,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         TextView emptyText = (TextView)findViewById(android.R.id.empty);
         medList.setEmptyView(emptyText);
 
-        MedAdapter adapter = new MedAdapter(this, R.layout.med_list_item, medArray);
+        AdapterMed adapter = new AdapterMed(this, R.layout.list_item_med, medArray);
         medList.setAdapter(adapter);
     }
 
@@ -887,7 +814,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             }
         }
 
-        CommitAdapter adapter = new CommitAdapter(this, R.layout.med_list_item, commitArray, username);
+        AdapterCommit adapter = new AdapterCommit(this, R.layout.list_item_med, commitArray, username);
         commitList.setAdapter(adapter);
     }
 
@@ -969,7 +896,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     }
 
     public void showProfile(String username) {
-        Intent i = new Intent(context,ProfileActivity.class);
+        Intent i = new Intent(context,ActivityProfile.class);
         i.putExtra("profile_name",username);
         i.putExtra("can_edit",username.equals(username) || isAdmin);
         context.startActivity(i);

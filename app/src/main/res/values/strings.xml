@@ -71,5 +71,8 @@
     <string name="time">Time:</string>
     <string name="utc">(24-hour time UTC)</string>
     <string name="amount">Amount</string>
+    <string name="committed">Committed:</string>
+    <string name="minutes">(minutes)</string>
+    <string name="edit_commit">Edit Commitment</string>
 
 </resources>

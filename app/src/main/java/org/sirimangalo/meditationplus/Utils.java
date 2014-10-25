@@ -83,19 +83,29 @@ public class Utils {
             min = 0;
         }
 
-        String varColor = Integer.toHexString(min + ((100-percent)*(max-min)/100));
         String maxColor = Integer.toHexString(max);
         String blue = Integer.toHexString(min);
 
         if(percent > 50) { // becoming green
-            red = varColor;
+            red = Integer.toHexString(max - ((percent-50)*(max-min)/50));
             green = maxColor;
 
         }
         else { // becoming red
-            green = varColor;
+            green = Integer.toHexString(min + ((percent)*(max-min)/50));
             red = maxColor;
         }
         return (red.length() == 1?"0":"") + red + (green.length() == 1?"0":"") + green + (blue.length() == 1?"0":"") + blue;
     }
 }
+
+/*
+
+max 255, min 200
+
+0: red 255, green 200,  blue 200
+50: red 255, green 255,  blue 200
+100: red 200, green 255,  blue 200 varColor: 255 - 55
+
+
+ */

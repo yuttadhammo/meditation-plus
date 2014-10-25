@@ -11,7 +11,7 @@ import android.view.MenuItem;
 /**
  * Created by noah on 10/16/14.
  */
-public class PrefsActivity extends PreferenceActivity {
+public class ActivityPrefs extends PreferenceActivity {
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     @Override
     protected void onCreate(Bundle savedInstanceState) {

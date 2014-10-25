@@ -31,7 +31,7 @@ import android.widget.Toast;
 /**
  * Created by noah on 11/10/14.
  */
-public class LoginActivity extends Activity {
+public class ActivityLogin extends Activity {
     private SharedPreferences prefs;
     private String error = "";
     private String username = "";

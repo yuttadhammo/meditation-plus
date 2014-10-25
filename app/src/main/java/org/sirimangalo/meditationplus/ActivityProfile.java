@@ -4,10 +4,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
@@ -22,45 +21,29 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.zip.CheckedInputStream;
 
 /**
  * Created by noah on 10/16/14.
  */
-public class ProfileActivity extends ActionBarActivity {
+public class ActivityProfile extends ActionBarActivity {
 
-    private static String TAG = "ProfileActivity";
+    private static String TAG = "ActivityProfile";
     private static SharedPreferences prefs;
     private int LOGIN_CODE = 555;
 
     private String username;
     private String password;
     private String loginToken;
-    private ConnectivityManager cnnxManager;
 
     private String profileName;
 
     private String lastSubmit;
-
-    HttpClient httpclient;
 
     private JSONObject jsonFields;
     private TextView titleView;
@@ -78,6 +61,7 @@ public class ProfileActivity extends ActionBarActivity {
     private String uid;
     private boolean canEdit;
     private ImageView flagView;
+    private PostTaskRunner postRunner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,11 +69,9 @@ public class ProfileActivity extends ActionBarActivity {
 
         context = this;
 
-        httpclient = new DefaultHttpClient();
-
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
-        cnnxManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        postRunner = new PostTaskRunner(postHandler,this);
 
         // Set up the action bar.
         final ActionBar actionBar = getSupportActionBar();
@@ -164,7 +146,8 @@ public class ProfileActivity extends ActionBarActivity {
                 Utils.openHTM(this);
                 return true;
             case R.id.action_settings:
-                i = new Intent(this,PrefsActivity.class);
+                i = new Intent(this,ActivityPrefs.class);
+                i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(i);
                 return true;
             case R.id.action_save:
@@ -174,7 +157,7 @@ public class ProfileActivity extends ActionBarActivity {
                 if(!canEdit)
                     return true;
 
-                i = new Intent(this,ProfileActivity.class);
+                i = new Intent(this,ActivityProfile.class);
                 i.putExtra("edit",true);
                 i.putExtra("profile_name",profileName);
                 i.putExtra("can_edit",canEdit);
@@ -243,7 +226,8 @@ public class ProfileActivity extends ActionBarActivity {
     }
 
     private void showLogin() {
-        Intent i = new Intent(this,LoginActivity.class);
+        Intent i = new Intent(this,ActivityLogin.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivityForResult(i, LOGIN_CODE);
     }
 
@@ -257,14 +241,13 @@ public class ProfileActivity extends ActionBarActivity {
 
         lastSubmit = "login";
 
-        PostTask pt = new PostTask();
-        pt.execute(nvp);
+        postRunner.doPostTask(nvp);
         Log.d(TAG, "Executing: login");
     }
 
     private void doLogout() {
 
-        httpclient = new DefaultHttpClient(); // new session
+        postRunner = new PostTaskRunner(postHandler, this);
 
         username = "";
         password = "";
@@ -285,9 +268,7 @@ public class ProfileActivity extends ActionBarActivity {
 
         lastSubmit = "register";
 
-        PostTask pt = new PostTask();
-        pt.execute(nvp);
-        Log.d(TAG, "Executing: login");
+        postRunner.doPostTask(nvp);
     }
 
     public void doSubmit(String formId, ArrayList<NameValuePair> nvp, String profile) {
@@ -300,79 +281,25 @@ public class ProfileActivity extends ActionBarActivity {
         nvp.add(new BasicNameValuePair("form_id", formId));
         nvp.add(new BasicNameValuePair("submit", "Profile"));
 
-        PostTask pt = new PostTask();
-        pt.execute(nvp);
+        postRunner.doPostTask(nvp);
     }
 
-    private class PostTask extends AsyncTask<ArrayList<NameValuePair>, String, String> {
+    Handler postHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
 
-        int response = R.string.success;
-        String error = "";
-        String stringNote = "";
+            String result = (String) msg.obj;
 
-        @Override
-        protected String doInBackground(ArrayList<NameValuePair>... arg0) {
-            String responseString = "";
-            for(ArrayList<NameValuePair> nameValuePair : arg0) {
-                try {
-                    // if we have no data connection, no point in proceeding.
-                    NetworkInfo ni = cnnxManager.getActiveNetworkInfo();
-                    if (ni == null || !ni.isAvailable() || !ni.isConnected()) {
-                        response = R.string.no_internet;
-                        return "";
-                    } else {
+            if(msg.what != 1) {
+                Toast.makeText(context, result, Toast.LENGTH_SHORT).show();
 
-                        // Create a new HttpClient and Post Header
-                        HttpPost httppost = new HttpPost("http://meditation.sirimangalo.org/post.php");
-
-                        try {
-                            httppost.setEntity(new UrlEncodedFormEntity(nameValuePair));
-
-                            // Execute HTTP Post Request
-                            HttpResponse aresponse = httpclient.execute(httppost);
-                            StatusLine statusLine = aresponse.getStatusLine();
-
-                            HttpEntity data = aresponse.getEntity();
-                            if(statusLine.getStatusCode() == HttpStatus.SC_OK){
-                                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                                aresponse.getEntity().writeTo(out);
-                                out.close();
-                                responseString = out.toString();
-                            } else{
-                                //Closes the connection.
-                                aresponse.getEntity().getContent().close();
-                                throw new IOException(statusLine.getReasonPhrase());
-                            }
-
-                        } catch (ClientProtocolException e) {
-                            error = e.getMessage();
-                        } catch (IOException e) {
-                            error = e.getMessage();
-                        }
-                    }
-
-                    // / grab and log data
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    response = R.string.error;
-
-                    error = e.getMessage();
-                    return "";
-                }
+                return;
             }
-            return responseString;
-        }
-        @Override
-        protected  void onPreExecute()
-        {
-        }
 
-        @Override
-        protected void onPostExecute(String result) {
             if(result.equals("success")) {
                 if(lastSubmit.equals("profile")) {
 
-                    Intent i = new Intent(context, ProfileActivity.class);
+                    Intent i = new Intent(context, ActivityProfile.class);
                     i.putExtra("profile_name",profileName);
                     i.putExtra("can_edit",canEdit);
                     i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -380,12 +307,6 @@ public class ProfileActivity extends ActionBarActivity {
                 }
                 return;
             }
-            if(result.equals("") && (lastSubmit.equals("login") || lastSubmit.equals("register"))) {
-                Log.e(TAG, "error logging in or registering");
-                showLogin();
-                return;
-            }
-
 
             try {
                 JSONObject json = new JSONObject(result);
@@ -399,7 +320,7 @@ public class ProfileActivity extends ActionBarActivity {
                     }
                     else if(success == 1) {
                         if(lastSubmit.equals("profile")) {
-                            Intent i = new Intent(context, ProfileActivity.class);
+                            Intent i = new Intent(context, ActivityProfile.class);
                             i.putExtra("profile_name",profileName);
                             i.putExtra("can_edit",canEdit);
                             i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -415,7 +336,7 @@ public class ProfileActivity extends ActionBarActivity {
             }
 
         }
-    }
+    };
 
     private void populateFields(JSONObject jsonFields, boolean isAdmin) {
         titleView = (TextView) findViewById(R.id.profile_title);

@@ -17,10 +17,19 @@
 package org.sirimangalo.meditationplus;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.text.Html;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextPaint;
 import android.text.TextUtils;
-import android.util.Log;
+import android.text.style.ClickableSpan;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
+import android.text.style.UnderlineSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +40,7 @@ import android.widget.TextView;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -41,17 +51,17 @@ import java.util.TimeZone;
 /**
  * Created by noah on 10/15/14.
  */
-public class CommitAdapter extends ArrayAdapter<JSONObject> {
+public class AdapterCommit extends ArrayAdapter<JSONObject> {
 
 
     private final List<JSONObject> values;
-    private final MainActivity context;
+    private final ActivityMain context;
     private final String loggedUser;
 
     private String[] dow = {"Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"};
-    private String TAG = "CommitAdapter";
+    private String TAG = "AdapterCommit";
 
-    public CommitAdapter(MainActivity _context, int resource, List<JSONObject> items, String _loggedUser) {
+    public AdapterCommit(ActivityMain _context, int resource, List<JSONObject> items, String _loggedUser) {
         super(_context, resource, items);
         this.values = items;
         context = _context;
@@ -63,9 +73,9 @@ public class CommitAdapter extends ArrayAdapter<JSONObject> {
 
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-        View rowView = inflater.inflate(R.layout.commit_list_item, parent, false);
+        View rowView = inflater.inflate(R.layout.list_item_commit, parent, false);
 
-        JSONObject p = values.get(position);
+        final JSONObject p = values.get(position);
 
         TextView title = (TextView) rowView.findViewById(R.id.title);
         TextView descV = (TextView) rowView.findViewById(R.id.desc);
@@ -123,7 +133,6 @@ public class CommitAdapter extends ArrayAdapter<JSONObject> {
             }
 
             if(!time.equals("any")) {
-
                 Calendar utc = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
                 utc.set(Calendar.HOUR_OF_DAY, Integer.parseInt(time.split(":")[0]));
                 utc.set(Calendar.MINUTE, Integer.parseInt(time.split(":")[1]));
@@ -141,29 +150,75 @@ public class CommitAdapter extends ArrayAdapter<JSONObject> {
             defV.setText(Html.fromHtml(def));
 
             JSONObject usersJ = p.getJSONObject("users");
-            int committed = -1;
 
-            ArrayList<String> usera = new ArrayList<String>();
+            ArrayList<String> committedArray = new ArrayList<String>();
+
+            // collect into array
 
             for(int i = 0; i < usersJ.names().length(); i++) {
-                String j = usersJ.names().getString(i);
-
-                String ucomm = usersJ.getString(j);
-
-                if(j.equals(loggedUser))
-                    committed = Integer.parseInt(ucomm);
-
-                String k = j;
-
-                if(j.equals(p.getString("creator")))
-                    k = "["+j+"]";
-
-                String color = Utils.makeRedGreen(Integer.parseInt(ucomm), true);
-
-                usera.add("<font color=\"#"+color+"\">" + k + "</font>");
+                try {
+                    String j = usersJ.names().getString(i);
+                    String k = j;
+                    if(j.equals(p.getString("creator")))
+                        k = "["+j+"]";
+                    committedArray.add(k);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
 
-            usersV.setText(Html.fromHtml(String.format(context.getString(R.string.commited_x),TextUtils.join(", ", usera))));
+            String text = context.getString(R.string.committed)+" ";
+
+            // add spans
+
+            int committed = -1;
+
+            int pos = text.length(); // start after "Committed: "
+
+            text += TextUtils.join(", ", committedArray);
+            Spannable span = new SpannableString(text);
+
+            span.setSpan(new StyleSpan(Typeface.BOLD), 0, pos, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE); // bold the "Online: "
+
+            for(int i = 0; i < committedArray.size(); i++) {
+                try {
+
+                    final String oneCom = committedArray.get(i);
+                    String userCom = usersJ.getString(oneCom.replace("[", "").replace("]", ""));
+
+                    if(oneCom.replace("[","").replace("]","").equals(loggedUser))
+                        committed = Integer.parseInt(userCom);
+
+                    int end = pos+oneCom.length();
+
+                    ClickableSpan clickable = new ClickableSpan() {
+
+                        @Override
+                        public void onClick(View widget) {
+                            context.showProfile(oneCom);
+                        }
+
+                    };
+                    span.setSpan(clickable, pos, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                    span.setSpan(new UnderlineSpan() {
+                        public void updateDrawState(TextPaint tp) {
+                            tp.setUnderlineText(false);
+                        }
+                    }, pos, end, 0);
+
+                    String color = Utils.makeRedGreen(Integer.parseInt(userCom), true);
+
+                    span.setSpan(new ForegroundColorSpan(Color.parseColor("#FF"+color)), pos, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                    pos += oneCom.length() + 2;
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            usersV.setText(span);
 
             if(loggedUser != null && loggedUser.length() > 0) {
                 LinearLayout bl = (LinearLayout) rowView.findViewById(R.id.commit_buttons);
@@ -202,8 +257,15 @@ public class CommitAdapter extends ArrayAdapter<JSONObject> {
                     Button commitB2 = new Button(context);
                     commitB2.setId(R.id.edit_commit_button);
                     commitB2.setText(R.string.edit);
-                    commitB2.setOnClickListener(context);
-                    //bl.addView(commitB);
+                    commitB2.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Intent i = new Intent(context,ActivityCommit.class);
+                            i.putExtra("commitment",p.toString());
+                            context.startActivity(i);
+                        }
+                    });
+                    bl.addView(commitB2);
 
                     Button commitB3 = new Button(context);
                     commitB3.setId(R.id.uncommit_button);
@@ -219,6 +281,7 @@ public class CommitAdapter extends ArrayAdapter<JSONObject> {
                     });
                     bl.addView(commitB3);
                 }
+
             }
 
             if(committed > -1) {

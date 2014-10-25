@@ -35,9 +35,10 @@
             />
         <EditText
             android:layout_width="match_parent"
-            android:layout_height="80dp"
+            android:layout_height="wrap_content"
             android:id="@+id/desc_field"
-            android:inputType="textMultiLine"
+            android:inputType="text"
+            android:singleLine="true"
             android:gravity="top"
             />
         <ImageView
@@ -59,128 +60,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             />
-        <ImageView
-            android:layout_height="1dp"
-            android:layout_width="match_parent"
-            android:background="@color/num_picker_separator"
-            />
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/type_label"
-            android:text="@string/type_commit"
-            android:textStyle="bold"
-            android:textSize="20sp"
-            android:paddingTop="10dp"
-            />
-        <RadioGroup
-            android:id="@+id/type_radios"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            >
-            <RadioButton
-                android:id="@+id/type_total"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/type_total_label"
-                android:text="@string/type_total"
-                />
-            <RadioButton
-                android:id="@+id/type_repeat"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/type_repeat_label"
-                android:text="@string/type_repeat"
-                />
-        </RadioGroup>
-        <LinearLayout
-            android:id="@+id/amount_shell"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:orientation="vertical"
-            >
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/amount_label"
-                android:text="@string/amount"
-                android:textStyle="bold"
-                android:textSize="20sp"
-                android:paddingTop="10dp"
-                />
-            <EditText
-                android:layout_width="40dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/amount_field"
-                android:inputType="number"
-                android:singleLine="true"
-                />
-            <ImageView
-                android:layout_height="1dp"
-                android:layout_width="match_parent"
-                android:background="@color/num_picker_separator"
-                />
-        </LinearLayout>
-        <LinearLayout
-            android:id="@+id/repeat_amount_shell"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:orientation="vertical"
-            >
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/repeat_amount_label"
-                android:text="@string/amount"
-                android:textStyle="bold"
-                android:textSize="20sp"
-                android:paddingTop="10dp"
-                />
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/walking_label"
-                    android:text="@string/walking_label"
-                    />
-                <EditText
-                    android:layout_width="40dp"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/walking_field"
-                    android:inputType="number"
-                    android:singleLine="true"
-                    />
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/sitting_label"
-                    android:text="@string/sitting_label"
-                    />
-                <EditText
-                    android:layout_width="40dp"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/sitting_field"
-                    android:inputType="number"
-                    android:singleLine="true"
-                    />
-            </LinearLayout>
-            <ImageView
-                android:layout_height="1dp"
-                android:layout_width="match_parent"
-                android:background="@color/num_picker_separator"
-                />
-        </LinearLayout>
         <LinearLayout
             android:id="@+id/dow_shell"
             android:layout_width="match_parent"
@@ -225,7 +104,7 @@
                 android:paddingTop="10dp"
                 />
             <EditText
-                android:layout_width="40dp"
+                android:layout_width="@dimen/time_field_width"
                 android:layout_height="wrap_content"
                 android:id="@+id/dom_field"
                 android:inputType="number"
@@ -254,7 +133,7 @@
                 android:paddingTop="10dp"
                 />
             <EditText
-                android:layout_width="40dp"
+                android:layout_width="@dimen/time_field_width"
                 android:layout_height="wrap_content"
                 android:id="@+id/doy_field"
                 android:inputType="number"
@@ -266,23 +145,163 @@
                 android:background="@color/num_picker_separator"
                 />
         </LinearLayout>
+        <ImageView
+            android:layout_height="1dp"
+            android:layout_width="match_parent"
+            android:background="@color/num_picker_separator"
+            />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/type_label"
+            android:text="@string/type_commit"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:paddingTop="10dp"
+            />
+        <RadioGroup
+            android:id="@+id/type_radios"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            >
+            <RadioButton
+                android:id="@+id/type_total"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/type_total_label"
+                android:text="@string/type_total"
+                />
+            <RadioButton
+                android:id="@+id/type_repeat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="false"
+                />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/type_repeat_label"
+                android:text="@string/type_repeat"
+                />
+        </RadioGroup>
+        <LinearLayout
+            android:id="@+id/amount_shell"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:orientation="vertical"
+            >
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/amount_label"
+                android:text="@string/amount"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:paddingTop="10dp"
+                />
+            <EditText
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/amount_field"
+                android:inputType="number"
+                android:singleLine="true"
+                />
+            <ImageView
+                android:layout_height="1dp"
+                android:layout_width="match_parent"
+                android:background="@color/num_picker_separator"
+                />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/repeat_amount_shell"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:orientation="vertical"
+            >
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/repeat_amount_label"
+                android:text="@string/amount"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:paddingTop="10dp"
+                />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                >
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/walking_label"
+                    android:text="@string/walking_label"
+                    />
+                <EditText
+                    android:layout_width="@dimen/time_field_width"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/walking_field"
+                    android:inputType="number"
+                    android:singleLine="true"
+                    />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/sitting_label"
+                    android:text="@string/sitting_label"
+                    />
+                <EditText
+                    android:layout_width="@dimen/time_field_width"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/sitting_field"
+                    android:inputType="number"
+                    android:singleLine="true"
+                    />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/minutes_info"
+                    android:text="@string/minutes"
+                    />
+            </LinearLayout>
+            <ImageView
+                android:layout_height="1dp"
+                android:layout_width="match_parent"
+                android:background="@color/num_picker_separator"
+                />
+        </LinearLayout>
         <LinearLayout
             android:id="@+id/spec_time_shell"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             >
-            <CheckBox
-                android:id="@+id/spec_time_check"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-            <TextView
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/spec_time_label"
-                android:text="@string/spec_time"
-                />
+                android:orientation="horizontal"
+                >
+                <CheckBox
+                    android:id="@+id/spec_time_check"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/spec_time_label"
+                    android:text="@string/spec_time"
+                    />
+            </LinearLayout>
             <LinearLayout
                 android:id="@+id/time_shell"
                 android:layout_width="match_parent"
@@ -291,34 +310,34 @@
                 android:orientation="horizontal"
                 >
                 <TextView
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/time_label"
                     android:text="@string/time"
                     android:layout_marginRight="10dp"
                     />
                 <EditText
-                    android:layout_width="40dp"
+                    android:layout_width="@dimen/time_field_width"
                     android:layout_height="wrap_content"
                     android:id="@+id/hour_field"
                     android:inputType="number"
                     android:singleLine="true"
                     />
                 <TextView
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/time_colon"
                     android:text=":"
                     />
                 <EditText
-                    android:layout_width="40dp"
+                    android:layout_width="@dimen/time_field_width"
                     android:layout_height="wrap_content"
                     android:id="@+id/min_field"
                     android:inputType="number"
                     android:singleLine="true"
                     />
                 <TextView
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/time_utc"
                     android:text="@string/utc"

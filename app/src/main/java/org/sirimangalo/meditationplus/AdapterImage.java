@@ -10,11 +10,11 @@ import android.widget.ImageView;
 /**
  * Created by noah on 10/16/14.
  */
-public class ImageAdapter extends BaseAdapter {
+public class AdapterImage extends BaseAdapter {
     private final String[] smilies;
     private Context context;
 
-    public ImageAdapter(Context c) {
+    public AdapterImage(Context c) {
         context = c;
         smilies = c.getResources().getStringArray(R.array.smily_files);
     }
