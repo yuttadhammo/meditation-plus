@@ -1,6 +1,7 @@
 package org.sirimangalo.meditationplus;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -62,6 +63,7 @@ public class ActivityProfile extends ActionBarActivity {
     private boolean canEdit;
     private ImageView flagView;
     private PostTaskRunner postRunner;
+    private ProgressDialog loadingDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +74,8 @@ public class ActivityProfile extends ActionBarActivity {
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         postRunner = new PostTaskRunner(postHandler,this);
+
+        loadingDialog = new ProgressDialog(this);
 
         // Set up the action bar.
         final ActionBar actionBar = getSupportActionBar();
@@ -281,12 +285,30 @@ public class ActivityProfile extends ActionBarActivity {
         nvp.add(new BasicNameValuePair("form_id", formId));
         nvp.add(new BasicNameValuePair("submit", "Profile"));
 
+        showLoading(true);
         postRunner.doPostTask(nvp);
     }
+
+    public void showLoading(boolean show) {
+        if(loadingDialog != null && loadingDialog.isShowing())
+            loadingDialog.dismiss();
+
+        if(!show)
+            return;
+
+        loadingDialog = new ProgressDialog(this);
+        loadingDialog.setTitle(R.string.processing);
+        loadingDialog.setMessage(getString(R.string.loading_message));
+        loadingDialog.show();
+
+    }
+
 
     Handler postHandler = new Handler() {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+
+            showLoading(false);
 
             String result = (String) msg.obj;
 

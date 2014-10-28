@@ -1,5 +1,6 @@
 package org.sirimangalo.meditationplus;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -63,6 +64,7 @@ public class ActivityCommit extends ActionBarActivity {
     private EditText minView;
     private String TAG = "ActivityCommit";
     private PostTaskRunner postRunner;
+    private ProgressDialog loadingDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +80,8 @@ public class ActivityCommit extends ActionBarActivity {
 
         username = prefs.getString("username","");
         loginToken = prefs.getString("login_token","");
+
+        loadingDialog = new ProgressDialog(this);
 
         setContentView(R.layout.activity_commit_edit);
 
@@ -201,6 +205,21 @@ public class ActivityCommit extends ActionBarActivity {
 
 
         return super.onOptionsItemSelected(item);
+    }
+
+
+    public void showLoading(boolean show) {
+        if(loadingDialog != null && loadingDialog.isShowing())
+            loadingDialog.dismiss();
+
+        if(!show)
+            return;
+
+        loadingDialog = new ProgressDialog(this);
+        loadingDialog.setTitle(R.string.processing);
+        loadingDialog.setMessage(getString(R.string.loading_message));
+        loadingDialog.show();
+
     }
 
 
@@ -376,12 +395,16 @@ public class ActivityCommit extends ActionBarActivity {
         nvp.add(new BasicNameValuePair("form_id", formId));
         nvp.add(new BasicNameValuePair("submit", "Commit"));
 
+        showLoading(true);
+
         postRunner.doPostTask(nvp);
     }
 
     Handler postHandler = new Handler() {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+
+            showLoading(false);
 
             String result = (String) msg.obj;
 

@@ -87,5 +87,9 @@
     <string name="stop_sound">Stop Sound</string>
     <string name="stop_playing_sound">stop currently playing sound</string>
     <string name="status">Status</string>
+    <string name="processing">Processing</string>
+    <string name="loading_message">Please wait...</string>
+    <string name="no_message">No message to send</string>
+    <string name="no_time">Meditating for zero minutes not allowed.</string>
 
 </resources>

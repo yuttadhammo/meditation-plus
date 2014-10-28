@@ -232,7 +232,7 @@ public class AdapterCommit extends ArrayAdapter<JSONObject> {
                             ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
                             nvp.add(new BasicNameValuePair("full_update", "true"));
 
-                            context.doSubmit("commitform_"+cid,nvp);
+                            context.doSubmit("commitform_"+cid,nvp, true);
                         }
                     });
                     bl.addView(commitB);
@@ -247,13 +247,13 @@ public class AdapterCommit extends ArrayAdapter<JSONObject> {
                             ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
                             nvp.add(new BasicNameValuePair("full_update", "true"));
 
-                            context.doSubmit("uncommitform_"+cid,nvp);
+                            context.doSubmit("uncommitform_"+cid,nvp, true);
                         }
                     });
                     bl.addView(commitB);
                 }
 
-                if(loggedUser.equals(p.getString("creator"))) {
+                if(loggedUser.equals(p.getString("creator")) || context.isAdmin) {
                     Button commitB2 = new Button(context);
                     commitB2.setId(R.id.edit_commit_button);
                     commitB2.setText(R.string.edit);
@@ -276,7 +276,7 @@ public class AdapterCommit extends ArrayAdapter<JSONObject> {
                             ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
                             nvp.add(new BasicNameValuePair("full_update", "true"));
 
-                            context.doSubmit("delcommitform_"+cid,nvp);
+                            context.doSubmit("delcommitform_"+cid,nvp, true);
                         }
                     });
                     bl.addView(commitB3);

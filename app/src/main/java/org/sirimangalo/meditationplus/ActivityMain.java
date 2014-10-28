@@ -20,6 +20,7 @@ import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -135,7 +136,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
     private boolean newChats = false;
     private boolean firstPage = true;
 
-    private boolean isAdmin = false;
+    public boolean isAdmin = false;
     private PostTaskRunner postTask;
 
     private int lastWalking;
@@ -147,6 +148,8 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
     private PendingIntent sitPendingIntent;
     private AlarmManager mAlarmMgr;
     public NotificationManager mNM;
+
+    private ProgressDialog loadingDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -171,6 +174,10 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         setContentView(R.layout.activity_main);
 
         onlineList = (TextView) findViewById(R.id.online);
+
+        // loading dialog
+        loadingDialog = new ProgressDialog(this);
+        loadingDialog.setTitle(R.string.processing);
 
         // Set up the action bar.
         final ActionBar actionBar = getSupportActionBar();
@@ -242,7 +249,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
             public void onTick(long l) {
                 ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
                 if(l < fullRefreshPeriod - refreshPeriod && isShowing) {
-                    doSubmit(null,nvp);
+                    doSubmit(null,nvp,false);
                 }
             }
 
@@ -254,7 +261,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                     restartTimer = true;
                     ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
                     nvp.add(new BasicNameValuePair("full_update", "true"));
-                    doSubmit(null, nvp);
+                    doSubmit(null, nvp, false);
                 }
             }
         };
@@ -262,7 +269,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         if(!loginToken.equals("")) {
             username = prefs.getString("username","");
             password = "";
-            doSubmit(null, new ArrayList<NameValuePair>());
+            doSubmit(null, new ArrayList<NameValuePair>(), false);
         }
     }
 
@@ -342,22 +349,29 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
         switch(id) {
             case R.id.chat_send:
+
                 smiliesShell.setVisibility(View.GONE);
                 EditText message = (EditText) findViewById(R.id.chat_text);
                 String messageT = message.getText().toString();
+                if(messageT.length() == 0) {
+                    Toast.makeText(this,R.string.no_message,Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 if(messageT.length() > 140) {
                     Toast.makeText(this,R.string.message_too_log,Toast.LENGTH_SHORT).show();
                     return;
                 }
                 nvp.add(new BasicNameValuePair("message", messageT));
-                doSubmit("chatform", nvp);
+                doSubmit("chatform", nvp, true);
                 break;
             case R.id.med_send:
                 int w = walkingPicker.getValue();
                 int s = sittingPicker.getValue();
 
-                if(w == 0 && s == 0)
+                if(w == 0 && s == 0) {
+                    Toast.makeText(this,R.string.no_time,Toast.LENGTH_SHORT).show();
                     return;
+                }
 
                 SharedPreferences.Editor editor = prefs.edit();
                 editor.putInt("walking",w);
@@ -370,8 +384,8 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                 startMeditating = true;
 
                 nvp.add(new BasicNameValuePair("walking", lastWalking+""));
-                nvp.add(new BasicNameValuePair("sitting", lastSitting+""));
-                doSubmit("timeform", nvp);
+                nvp.add(new BasicNameValuePair("sitting", lastSitting + ""));
+                doSubmit("timeform", nvp, true);
                 break;
             case R.id.med_cancel:
 
@@ -379,7 +393,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                 mAlarmMgr.cancel(sitPendingIntent);
                 mNM.cancelAll();
 
-                doSubmit("cancelform", nvp);
+                doSubmit("cancelform", nvp, true);
                 break;
             case R.id.smily_button:
                 if(smiliesShell.getVisibility() == View.GONE)
@@ -419,6 +433,20 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         }
     }
 
+    public void showLoading(boolean show) {
+        if(loadingDialog != null && loadingDialog.isShowing())
+            loadingDialog.dismiss();
+
+        if(!show)
+            return;
+
+        loadingDialog = new ProgressDialog(this);
+        loadingDialog.setTitle(R.string.processing);
+        loadingDialog.setMessage(getString(R.string.loading_message));
+        loadingDialog.show();
+
+    }
+
 
     private void showLogin() {
         Intent i = new Intent(this,ActivityLogin.class);
@@ -429,14 +457,13 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
     private void doLogin() {
 
         ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
-        nvp.add(new BasicNameValuePair("username", username));
         nvp.add(new BasicNameValuePair("password", password));
         nvp.add(new BasicNameValuePair("login_token", loginToken));
         nvp.add(new BasicNameValuePair("submit", "Login"));
 
         lastSubmit = "login";
 
-        postTask.doPostTask(nvp);
+        doPostTask(nvp);
 
         Log.d(TAG, "Executing: login");
     }
@@ -458,19 +485,19 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
     private void doRegister() {
 
         ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
-        nvp.add(new BasicNameValuePair("username", username));
         nvp.add(new BasicNameValuePair("password", password));
         nvp.add(new BasicNameValuePair("submit", "Register"));
 
         lastSubmit = "register";
 
-        postTask.doPostTask(nvp);
-;
+        doPostTask(nvp);
+
         Log.d(TAG, "Executing: login");
     }
 
-    public void doSubmit(String formId, ArrayList<NameValuePair> nvp) {
+    public void doSubmit(String formId, ArrayList<NameValuePair> nvp, boolean loading) {
 
+        nvp.add(new BasicNameValuePair("login_token", loginToken));
         nvp.add(new BasicNameValuePair("list_version", listVersion+""));
         nvp.add(new BasicNameValuePair("chat_version", chatVersion+""));
         nvp.add(new BasicNameValuePair("submit", "Refresh"));
@@ -485,12 +512,15 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         if(listVersion == -1 && chatVersion == -1)
             nvp.add(new BasicNameValuePair("full_update", "true"));
 
+        if(loading)
+            showLoading(true);
+
         doPostTask(nvp);
     }
 
     public void doPostTask(ArrayList<NameValuePair> nvp) {
+
         nvp.add(new BasicNameValuePair("username", username));
-        nvp.add(new BasicNameValuePair("login_token", loginToken));
         postTask.doPostTask(nvp);
     }
 
@@ -630,6 +660,8 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
 
+            showLoading(false);
+
             String result = (String) msg.obj;
             
             if(msg.what != 1) {
@@ -726,7 +758,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                     }
 
                     if(isShowing && (lastSubmit.equals("register") || lastSubmit.equals("login"))) {
-                        doSubmit(null, new ArrayList<NameValuePair>());
+                        doSubmit(null, new ArrayList<NameValuePair>(), false);
                         return;
                     }
                 }
@@ -809,7 +841,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                 public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
                     String cid = (String) view.findViewById(R.id.message).getTag();
                     ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
-                    doSubmit("delchat_" + cid, nvp);
+                    doSubmit("delchat_" + cid, nvp, true);
                     return true;
                 }
             });
