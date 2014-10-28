@@ -39,7 +39,15 @@
             android:gravity="center"
             android:textStyle="bold"
             />
-
+        <TextView
+            android:id="@+id/status_head"
+            android:text="@string/status"
+            android:layout_width="@dimen/med_head_width"
+            android:layout_height="match_parent"
+            android:padding="@dimen/med_cell_padding"
+            android:gravity="center"
+            android:textStyle="bold"
+            />
         <TextView
             android:id="@+id/name_head"
             android:text="@string/username"

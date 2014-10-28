@@ -17,6 +17,10 @@
 package org.sirimangalo.meditationplus;
 
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
@@ -134,6 +138,16 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
     private boolean isAdmin = false;
     private PostTaskRunner postTask;
 
+    private int lastWalking;
+    private int lastSitting;
+    private boolean startMeditating = false;
+
+    private ScheduleClient scheduleClient;
+    private PendingIntent walkPendingIntent;
+    private PendingIntent sitPendingIntent;
+    private AlarmManager mAlarmMgr;
+    public NotificationManager mNM;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -143,7 +157,17 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         postTask = new PostTaskRunner(postHandler, this);
-        
+
+        // Create a new service client and bind our activity to this service
+        scheduleClient = new ScheduleClient(this);
+        scheduleClient.doBindService();
+
+        mAlarmMgr = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(this, ReceiverAlarm.class);
+        walkPendingIntent = PendingIntent.getBroadcast((Context)context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        sitPendingIntent = PendingIntent.getBroadcast((Context)context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        mNM = (NotificationManager)this.getSystemService(Context.NOTIFICATION_SERVICE);
+
         setContentView(R.layout.activity_main);
 
         onlineList = (TextView) findViewById(R.id.online);
@@ -248,6 +272,15 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         isShowing = false;
     }
 
+    @Override
+    protected void onStop() {
+        // When our activity is stopped ensure we also stop the connection to the service
+        // this stops us leaking our activity into the system *bad*
+
+        if(scheduleClient != null)
+            scheduleClient.doUnbindService();
+        super.onStop();
+    }
 
 
     @Override
@@ -331,11 +364,21 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                 editor.putInt("sitting",s);
                 editor.apply();
 
-                nvp.add(new BasicNameValuePair("walking", Integer.toString(w * 5)));
-                nvp.add(new BasicNameValuePair("sitting", Integer.toString(s * 5)));
+                lastWalking = w*5;
+                lastSitting = s*5;
+
+                startMeditating = true;
+
+                nvp.add(new BasicNameValuePair("walking", lastWalking+""));
+                nvp.add(new BasicNameValuePair("sitting", lastSitting+""));
                 doSubmit("timeform", nvp);
                 break;
             case R.id.med_cancel:
+
+                mAlarmMgr.cancel(walkPendingIntent);
+                mAlarmMgr.cancel(sitPendingIntent);
+                mNM.cancelAll();
+
                 doSubmit("cancelform", nvp);
                 break;
             case R.id.smily_button:
@@ -595,6 +638,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                 if(lastSubmit.equals("login") || lastSubmit.equals("register") && isShowing)
                     showLogin();
 
+                startMeditating = false;
                 return;
             }
 
@@ -620,6 +664,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                         Log.e(TAG, "not logged in");
                         if(isShowing)
                             showLogin();
+                        startMeditating = false;
                         return;
                     }
                     else if(success == 1) {
@@ -688,6 +733,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
             } catch (Exception e) {
                 //Log.e(TAG,"ERROR");
                 e.printStackTrace();
+                startMeditating = false;
             }
 
             if(isShowing && restartTimer) {
@@ -786,6 +832,17 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         for(int i = 0; i < meds.length(); i++) {
             try {
                 JSONObject med = meds.getJSONObject(i);
+
+                if(med.getString("username").equals(username) && startMeditating) {
+                    startMeditating = false;
+
+                    if(lastWalking > 0)
+                        scheduleClient.setAlarmForNotification(lastWalking, lastWalking, getString(R.string.walking));
+
+                    if(lastSitting > 0)
+                        scheduleClient.setAlarmForNotification(lastSitting, lastWalking+lastSitting, getString(R.string.sitting));
+                }
+
                 medArray.add(med);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -895,10 +952,10 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
 
     }
 
-    public void showProfile(String username) {
+    public void showProfile(String profile) {
         Intent i = new Intent(context,ActivityProfile.class);
-        i.putExtra("profile_name",username);
-        i.putExtra("can_edit",username.equals(username) || isAdmin);
+        i.putExtra("profile_name",profile);
+        i.putExtra("can_edit",username.equals(profile) || isAdmin);
         context.startActivity(i);
     }
 

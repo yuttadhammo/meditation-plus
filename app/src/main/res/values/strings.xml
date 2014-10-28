@@ -74,5 +74,18 @@
     <string name="committed">Committed:</string>
     <string name="minutes">(minutes)</string>
     <string name="edit_commit">Edit Commitment</string>
+    <string name="alarm_title">Meditation Alarm</string>
+    <string name="alarm_desc">%1$s for %2$d minutes finished</string>
+    <string name="timer_done">timer finished</string>
+    <string name="alarm_prefs">Alarm Preferences</string>
+    <string name="alarm_tone">Alarm Tone</string>
+    <string name="none">None</string>
+    <string name="play_sound">Play Sound</string>
+    <string name="play_sound_desc">Test current alarm sound</string>
+    <string name="input_text">Input Text</string>
+    <string name="input_text_desc">use %%s for type and %%d for time</string>
+    <string name="stop_sound">Stop Sound</string>
+    <string name="stop_playing_sound">stop currently playing sound</string>
+    <string name="status">Status</string>
 
 </resources>

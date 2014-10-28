@@ -210,20 +210,6 @@ public class ActivityCommit extends ActionBarActivity {
         domShell.setVisibility(View.GONE);
         doyShell.setVisibility(View.GONE);
 
-        switch(periodList.getSelectedItemPosition() ) {
-            case 0:
-                break;
-            case 1:
-                dowShell.setVisibility(View.VISIBLE);
-                break;
-            case 2:
-                domShell.setVisibility(View.VISIBLE);
-                break;
-            case 3:
-                doyShell.setVisibility(View.VISIBLE);
-                break;
-        }
-
         amountShell.setVisibility(View.GONE);
         repAmountShell.setVisibility(View.GONE);
         specTimeShell.setVisibility(View.GONE);
@@ -233,6 +219,19 @@ public class ActivityCommit extends ActionBarActivity {
             amountShell.setVisibility(View.VISIBLE);
         }
         else {
+            switch(periodList.getSelectedItemPosition() ) {
+                case 0:
+                    break;
+                case 1:
+                    dowShell.setVisibility(View.VISIBLE);
+                    break;
+                case 2:
+                    domShell.setVisibility(View.VISIBLE);
+                    break;
+                case 3:
+                    doyShell.setVisibility(View.VISIBLE);
+                    break;
+            }
             repAmountShell.setVisibility(View.VISIBLE);
             specTimeShell.setVisibility(View.VISIBLE);
             if(specCheck.isChecked())
@@ -262,20 +261,28 @@ public class ActivityCommit extends ActionBarActivity {
             if(!day.equals("-1") || (period.equals("daily") && !time.equals("any")))
                 repeat = true;
 
+            if (period.equals("weekly")) {
+                periodList.setSelection(1);
+            }
+            else if (period.equals("monthly")) {
+                periodList.setSelection(2);
+            }
+            else if (period.equals("yearly")) {
+                periodList.setSelection(3);
+            }
+
+
             if(repeat) {
 
                 ((RadioButton)findViewById(R.id.type_repeat)).setChecked(true);
 
                 if (period.equals("weekly")) {
-                    periodList.setSelection(1);
                     dowList.setSelection(Integer.parseInt(day));
                 }
                 else if (period.equals("monthly")) {
-                    periodList.setSelection(2);
                     domView.setText(day);
                 }
                 else if (period.equals("yearly")) {
-                    periodList.setSelection(3);
                     doyView.setText(day);
                 }
             }
@@ -321,10 +328,9 @@ public class ActivityCommit extends ActionBarActivity {
 
         String title = titleView.getText().toString();
         String desc = descView.getText().toString();
-        String[] periodl = getResources().getStringArray(R.array.periods);
-        String period = periodl[dowList.getSelectedItemPosition()];
+        String period = periodList.getSelectedItem().toString();
 
-        int dow = dowList.getSelectedItemPosition() - 1;
+        int dow = dowList.getSelectedItemPosition();
         String dom = domView.getText().toString();
         String doy = doyView.getText().toString();
 
@@ -336,6 +342,16 @@ public class ActivityCommit extends ActionBarActivity {
         else {
             nvp.add(new BasicNameValuePair("walking", walkView.getText().toString()));
             nvp.add(new BasicNameValuePair("sitting", sitView.getText().toString()));
+
+            if(period.equals("weekly")) {
+                nvp.add(new BasicNameValuePair("dow", dow+""));
+            }
+            else if(period.equals("monthly")) {
+                nvp.add(new BasicNameValuePair("dom", dom));
+            }
+            else if(period.equals("yearly")) {
+                nvp.add(new BasicNameValuePair("doy", doy));
+            }
         }
 
         boolean specTime = specCheck.isChecked();
@@ -347,16 +363,6 @@ public class ActivityCommit extends ActionBarActivity {
         nvp.add(new BasicNameValuePair("desc", desc));
         nvp.add(new BasicNameValuePair("period", period));
         nvp.add(new BasicNameValuePair("type", type));
-
-        if(period.equals("weekly")) {
-            nvp.add(new BasicNameValuePair("dow", dow+""));
-        }
-        else if(period.equals("monthly")) {
-            nvp.add(new BasicNameValuePair("dom", dom));
-        }
-        else if(period.equals("yearly")) {
-            nvp.add(new BasicNameValuePair("doy", doy));
-        }
 
         String time;
         if(specTime) {

@@ -25,6 +25,14 @@
             android:layout_height="match_parent"
             android:padding="@dimen/med_cell_padding"
             />
+        <ImageView
+            android:id="@+id/one_status"
+            android:layout_width="@dimen/med_head_width"
+            android:layout_height="24dp"
+            android:paddingLeft="@dimen/med_cell_padding"
+            android:paddingRight="@dimen/med_cell_padding"
+            android:src="@drawable/finished_icon"
+            />
         <TextView
             android:id="@+id/one_med"
             android:layout_width="0dp"
@@ -36,6 +44,8 @@
             android:id="@+id/one_flag"
             android:layout_width="@dimen/med_head_width"
             android:layout_height="24dp"
+            android:paddingLeft="@dimen/med_cell_padding"
+            android:paddingRight="@dimen/med_cell_padding"
             />
     </LinearLayout>
 </RelativeLayout>

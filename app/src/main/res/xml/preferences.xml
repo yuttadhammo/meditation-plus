@@ -19,4 +19,17 @@
             android:defaultValue="60"
             />
     </PreferenceCategory>
+    <PreferenceCategory android:title="@string/alarm_prefs">
+        <ListPreference
+            android:title="@string/alarm_tone"
+            android:summary="@string/none"
+            android:key="notification_uri"
+            android:defaultValue="none"
+            />
+        <Preference
+            android:title="@string/play_sound"
+            android:summary="@string/play_sound_desc"
+            android:key="play_sound"
+            />
+    </PreferenceCategory>
 </PreferenceScreen>

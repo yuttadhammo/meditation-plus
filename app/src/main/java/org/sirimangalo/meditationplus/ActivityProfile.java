@@ -221,7 +221,7 @@ public class ActivityProfile extends ActionBarActivity {
 
         String country = ccodes[((Spinner)countryView).getSelectedItemPosition()];
         nvp.add(new BasicNameValuePair("country", country));
-        doSubmit("profile", nvp, username);
+        doSubmit("profile", nvp, oldName);
 
     }
 
@@ -353,11 +353,15 @@ public class ActivityProfile extends ActionBarActivity {
             uid = jsonFields.getString("uid");
             oldName = jsonFields.getString("username");
 
-            titleView.setText(String.format(getString(R.string.s_profile),jsonFields.getString("username")));
-            nameView.setText(jsonFields.getString("username"));
-            aboutView.setText(jsonFields.getString("description"));
-            emailView.setText(jsonFields.getString("email"));
-            websiteView.setText(jsonFields.getString("website"));
+            String desc = jsonFields.has("description")? jsonFields.getString("description"):"";
+            String email = jsonFields.has("email")? jsonFields.getString("email"):"";
+            String website = jsonFields.has("website")? jsonFields.getString("website"):"";
+
+            titleView.setText(String.format(getString(R.string.s_profile),oldName));
+            nameView.setText(oldName);
+            aboutView.setText(desc);
+            emailView.setText(email);
+            websiteView.setText(website);
 
             String cname = "";
             int idx = 0;

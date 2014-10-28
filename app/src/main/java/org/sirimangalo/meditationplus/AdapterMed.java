@@ -18,6 +18,7 @@ package org.sirimangalo.meditationplus;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,7 +40,7 @@ public class AdapterMed extends ArrayAdapter<JSONObject> {
     private final List<JSONObject> values;
     private final ActivityMain context;
 
-    private int MAX_AGE = 60*60*12; // one day
+    private double MAX_AGE = 60*60*1.5; // 1.5 hour
 
     private String TAG = "AdapterMed";
 
@@ -61,6 +62,7 @@ public class AdapterMed extends ArrayAdapter<JSONObject> {
 
         TextView walk = (TextView) rowView.findViewById(R.id.one_walking);
         TextView sit = (TextView) rowView.findViewById(R.id.one_sitting);
+        ImageView status = (ImageView) rowView.findViewById(R.id.one_status);
         TextView name = (TextView) rowView.findViewById(R.id.one_med);
         ImageView flag = (ImageView) rowView.findViewById(R.id.one_flag);
 
@@ -84,15 +86,18 @@ public class AdapterMed extends ArrayAdapter<JSONObject> {
 
             if(ei > now) {
 
-                int secs = now - ti;
+                float secs = now - ti;
 
                 if (secs > wi * 60) { //walking done
-                    int ssecs = secs - (wi * 60);
+                    float ssecs = (int) (secs - (wi * 60));
                     if (ssecs < si * 60) // still sitting
-                        ss = Integer.toString(Math.round(si - ssecs / 60));
-                } else { // still walking
-                    ws = Integer.toString(Math.round(wi - secs / 60));
+                        ss = Integer.toString((int) Math.floor(si - ssecs / 60));
+                    status.setImageResource(R.drawable.sitting_icon);
+                }
+                else { // still walking
+                    ws = Integer.toString((int) Math.floor(wi - secs / 60));
                     ss = so;
+                    status.setImageResource(R.drawable.walking_icon);
                 }
 
                 ws += "/" + wo;
@@ -102,9 +107,9 @@ public class AdapterMed extends ArrayAdapter<JSONObject> {
                 ws = wo;
                 ss = so;
 
-                int age = 255-(now - ei)*255/MAX_AGE;
+                double age = 1-(now - ei)/MAX_AGE;
 
-                String ageColor = Integer.toHexString(age);
+                String ageColor = Integer.toHexString((int) (255*age));
 
                 if(ageColor.length() == 1)
                     ageColor = "0"+ageColor;
@@ -114,6 +119,8 @@ public class AdapterMed extends ArrayAdapter<JSONObject> {
                 walk.setTextColor(alpha);
                 sit.setTextColor(alpha);
                 name.setTextColor(alpha);
+                status.setAlpha((float)age);
+                flag.setAlpha((float)age);
 
             }
 
