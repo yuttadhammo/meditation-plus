@@ -24,6 +24,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -54,6 +55,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
@@ -77,7 +79,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 
-public class ActivityMain extends ActionBarActivity implements ActionBar.TabListener,View.OnClickListener {
+public class ActivityMain extends ActionBarActivity implements ActionBar.TabListener,View.OnClickListener,View.OnLongClickListener {
 
     /**
      * The {@link android.support.v4.view.PagerAdapter} that will provide
@@ -98,12 +100,12 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
     private static SharedPreferences prefs;
     private int LOGIN_CODE = 555;
 
-    private String username;
+    private static String username;
     private String password;
     private String loginToken;
 
     private ListView chatList;
-    private ListView medList;
+    private static ListView medList;
     private ListView commitList;
     private TextView onlineList;
     private static LinearLayout smiliesShell;
@@ -120,8 +122,10 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
     private static NumberPicker walkingPicker;
     private int refreshCount = 0;
 
+    public static Button medButton;
+
     private JSONArray jsonChats;
-    private JSONArray jsonList;
+    private static JSONArray jsonList;
     private JSONArray jsonLogged;
     private JSONArray jsonCommit;
 
@@ -151,9 +155,15 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
 
     private ProgressDialog loadingDialog;
 
+    public static String special = "none";
+    private static ArrayList<JSONObject> medArray;
+    private InputMethodManager inputManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        inputManager = (InputMethodManager) this.getSystemService(Context.INPUT_METHOD_SERVICE);
 
         context = this;
 
@@ -197,7 +207,17 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         mViewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
-                if(position == 1 && newChats) { // reset chat title
+
+                // close keyboard
+
+                View view = getCurrentFocus();
+                if (view != null) {
+                    inputManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+                }
+
+                // reset chat title
+
+                if(position == 1 && newChats) {
                     if(actionBar.getTabAt(1) != null)
                         actionBar.getTabAt(1).setText(getString(R.string.title_section2).toUpperCase(Locale.getDefault()));
                     newChats = false;
@@ -269,7 +289,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         if(!loginToken.equals("")) {
             username = prefs.getString("username","");
             password = "";
-            doSubmit(null, new ArrayList<NameValuePair>(), false);
+            doSubmit(null, new ArrayList<NameValuePair>(), true);
         }
     }
 
@@ -309,6 +329,14 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
             case R.id.action_htm:
                 Utils.openHTM(this);
                 return true;
+            case R.id.action_refresh:
+                listVersion = -1;
+                chatVersion = -1;
+                restartTimer = true;
+                ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
+                nvp.add(new BasicNameValuePair("full_update", "true"));
+                doSubmit(null, nvp, true);
+                return true;
             case R.id.action_profile:
                 showProfile(username);
                 return true;
@@ -317,6 +345,11 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                 return true;
             case R.id.action_settings:
                 i = new Intent(this,ActivityPrefs.class);
+                i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(i);
+                return true;
+            case R.id.action_help:
+                i = new Intent(this,ActivityHelp.class);
                 i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(i);
                 return true;
@@ -432,6 +465,21 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                 break;
         }
     }
+
+    @Override
+    public boolean onLongClick(View view) {
+        int id = view.getId();
+        ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
+        switch(id) {
+            case R.id.med_send:
+                nvp.add(new BasicNameValuePair("type", special.equals("love")?"none":"love"));
+
+                doSubmit("change_type",nvp,true);
+                return true;
+        }
+        return false;
+    }
+
 
     public void showLoading(boolean show) {
         if(loadingDialog != null && loadingDialog.isShowing())
@@ -644,8 +692,10 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                     walkingPicker.setValue(prefs.getInt("walking",0));
                     sittingPicker.setValue(prefs.getInt("sitting",0));
 
-                    Button medButton = (Button) rootView.findViewById(R.id.med_send);
+                    medButton = (Button) rootView.findViewById(R.id.med_send);
                     medButton.setOnClickListener(context);
+
+                    medButton.setOnLongClickListener(context);
 
                     Button cancelButton = (Button) rootView.findViewById(R.id.med_cancel);
                     cancelButton.setOnClickListener(context);
@@ -762,6 +812,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                         return;
                     }
                 }
+
             } catch (Exception e) {
                 //Log.e(TAG,"ERROR");
                 e.printStackTrace();
@@ -783,6 +834,10 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         int max_height = 100;
 
         LinearLayout hll = (LinearLayout) findViewById(R.id.time_log);
+
+        if(hll == null)
+            return;
+
         hll.removeAllViews();
 
         try {
@@ -818,7 +873,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
 
         int newChatNo = 0;
 
-        int latestChatTime = lastChatTime;
+        int latestChatTime = 0;
         ArrayList<JSONObject> chatArray = new ArrayList<JSONObject>();
         for(int i = 0; i < chats.length(); i++) {
             try {
@@ -832,9 +887,10 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                 e.printStackTrace();
             }
         }
-        AdapterChat adapter = new AdapterChat(this, R.layout.list_item_chat, chatArray);
-        chatList.setAdapter(adapter);
-        chatList.setSelection(adapter.getCount() - 1);
+
+        if(latestChatTime < lastChatTime)
+            newChatNo = -1;
+
         if(admin)
             chatList.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                 @Override
@@ -846,11 +902,29 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                 }
             });
 
-        if(newChatNo > 0 && currentPosition != 1) {
-            newChats = true;
-            ActionBar actionBar = getSupportActionBar();
-            if(lastChatTime != -1 && actionBar.getTabAt(1) != null)
-                actionBar.getTabAt(1).setText(Html.fromHtml(getString(R.string.title_section2).toUpperCase(Locale.getDefault())+" ("+newChatNo+")"));
+        // save index and top position
+        int index = chatList.getFirstVisiblePosition();
+        View v = chatList.getChildAt(0);
+        int top = (v == null) ? 0 : v.getTop();
+
+        AdapterChat adapter = new AdapterChat(this, R.layout.list_item_chat, chatArray);
+        chatList.setAdapter(adapter);
+
+        // restore index and position
+
+        if(newChatNo != 0)
+            chatList.setSelection(adapter.getCount() - 1);
+        else
+            chatList.setSelectionFromTop(index, top);
+
+
+        if(newChatNo > 0) {
+            if(currentPosition != 1) {
+                newChats = true;
+                ActionBar actionBar = getSupportActionBar();
+                if (lastChatTime != -1 && actionBar.getTabAt(1) != null)
+                    actionBar.getTabAt(1).setText(Html.fromHtml(getString(R.string.title_section2).toUpperCase(Locale.getDefault()) + " (" + newChatNo + ")"));
+            }
         }
         lastChatTime = latestChatTime;
     }
@@ -860,19 +934,36 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
             return;
         medList = (ListView) findViewById(R.id.med_list);
 
-        ArrayList<JSONObject> medArray = new ArrayList<JSONObject>();
+        medArray = new ArrayList<JSONObject>();
         for(int i = 0; i < meds.length(); i++) {
             try {
                 JSONObject med = meds.getJSONObject(i);
 
-                if(med.getString("username").equals(username) && startMeditating) {
-                    startMeditating = false;
+                if(med.getString("username").equals(username)) {
+                    if (startMeditating) {
+                        startMeditating = false;
 
-                    if(lastWalking > 0)
-                        scheduleClient.setAlarmForNotification(lastWalking, lastWalking, getString(R.string.walking));
+                        if (lastWalking > 0)
+                            scheduleClient.setAlarmForNotification(lastWalking, lastWalking, getString(R.string.walking));
 
-                    if(lastSitting > 0)
-                        scheduleClient.setAlarmForNotification(lastSitting, lastWalking+lastSitting, getString(R.string.sitting));
+                        if (lastSitting > 0)
+                            scheduleClient.setAlarmForNotification(lastSitting, lastWalking + lastSitting, getString(R.string.sitting));
+                    }
+
+                    if(med.getString("type").equals("love")) {
+                        special = "love";
+                        Spannable span = new SpannableString("LOVE");
+                        span.setSpan(new ForegroundColorSpan(Color.RED), 0, 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        span.setSpan(new ForegroundColorSpan(Color.YELLOW), 1, 2, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        span.setSpan(new ForegroundColorSpan(Color.GREEN), 2, 3, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        span.setSpan(new ForegroundColorSpan(Color.BLUE), 3, 4, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        medButton.setText(span);
+                    }
+                    else {
+                        special = "none";
+                        medButton.setText(R.string.start);
+                    }
+
                 }
 
                 medArray.add(med);

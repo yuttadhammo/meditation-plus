@@ -12,38 +12,46 @@
         android:textSize="@dimen/title_size"
         android:textStyle="bold"
         />
-    <TextView
-        android:id="@+id/desc"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="@dimen/subtitle_size"
-        android:textStyle="bold|italic"
-        />
-    <TextView
-        android:id="@+id/def"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="4px"
-        />
-    <TextView
-        android:id="@+id/users"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textStyle="italic"
-        android:padding="4px"
-        />
-    <TextView
-        android:id="@+id/you"
+    <LinearLayout
+        android:id="@+id/detail_shell"
         android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="4px"
-        />
-    <LinearLayout
-        android:id="@+id/commit_buttons"
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:orientation="vertical"
+        >
+        <TextView
+            android:id="@+id/desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/subtitle_size"
+            android:textStyle="bold|italic"
+            />
+        <TextView
+            android:id="@+id/def"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="4px"
+            />
+        <TextView
+            android:id="@+id/users"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textStyle="italic"
+            android:padding="4px"
+            />
+        <TextView
+            android:id="@+id/you"
+            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="4px"
+            />
+        <LinearLayout
+            android:id="@+id/commit_buttons"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-        </LinearLayout>
+            </LinearLayout>
+    </LinearLayout>
 </LinearLayout>

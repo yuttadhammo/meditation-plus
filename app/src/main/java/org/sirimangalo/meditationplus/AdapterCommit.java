@@ -26,6 +26,7 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextPaint;
 import android.text.TextUtils;
+import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
@@ -74,6 +75,17 @@ public class AdapterCommit extends ArrayAdapter<JSONObject> {
         LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         View rowView = inflater.inflate(R.layout.list_item_commit, parent, false);
+
+        final View shell = rowView.findViewById(R.id.detail_shell);
+
+        rowView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                shell.setVisibility(shell.getVisibility() ==  View.GONE ? View.VISIBLE : View.GONE);
+
+            }
+        });
 
         final JSONObject p = values.get(position);
 
@@ -159,8 +171,8 @@ public class AdapterCommit extends ArrayAdapter<JSONObject> {
                 try {
                     String j = usersJ.names().getString(i);
                     String k = j;
-                    if(j.equals(p.getString("creator")))
-                        k = "["+j+"]";
+//                    if(j.equals(p.getString("creator")))
+//                        k = "["+j+"]";
                     committedArray.add(k);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -184,9 +196,11 @@ public class AdapterCommit extends ArrayAdapter<JSONObject> {
                 try {
 
                     final String oneCom = committedArray.get(i);
-                    String userCom = usersJ.getString(oneCom.replace("[", "").replace("]", ""));
+                    String userCom = usersJ.getString(oneCom);
+                    //String userCom = usersJ.getString(oneCom.replace("[", "").replace("]", ""));
 
-                    if(oneCom.replace("[","").replace("]","").equals(loggedUser))
+                    //if(oneCom.replace("[","").replace("]","").equals(loggedUser))
+                    if(oneCom.equals(loggedUser))
                         committed = Integer.parseInt(userCom);
 
                     int end = pos+oneCom.length();
@@ -219,6 +233,7 @@ public class AdapterCommit extends ArrayAdapter<JSONObject> {
             }
 
             usersV.setText(span);
+            usersV.setMovementMethod(new LinkMovementMethod());
 
             if(loggedUser != null && loggedUser.length() > 0) {
                 LinearLayout bl = (LinearLayout) rowView.findViewById(R.id.commit_buttons);

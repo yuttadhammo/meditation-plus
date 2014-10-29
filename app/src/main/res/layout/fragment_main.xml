@@ -104,6 +104,12 @@
         android:layout_height="wrap_content"
         android:background="@android:color/white"
         >
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/num_picker_background_color"
+            />
         <TextView
             android:text="@string/walking_label"
             android:layout_width="wrap_content"
@@ -114,11 +120,10 @@
             android:textStyle="bold"
             android:background="@color/num_picker_background_color"
             />
-        <NumberPicker
+        <org.sirimangalo.meditationplus.MyNumberPicker
             android:id="@+id/walking_input"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="80dp"
+            android:layout_width="@dimen/number_picker_width"
+            android:layout_height="@dimen/number_picker_height"
             android:solidColor="@color/num_picker_color"
             />
         <TextView
@@ -131,11 +136,10 @@
             android:textStyle="bold"
             android:background="@color/num_picker_background_color"
             />
-        <NumberPicker
+        <org.sirimangalo.meditationplus.MyNumberPicker
             android:id="@+id/sitting_input"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="80dp"
+            android:layout_width="@dimen/number_picker_width"
+            android:layout_height="@dimen/number_picker_height"
             android:solidColor="@color/num_picker_color"
             />
         <Button
@@ -146,7 +150,7 @@
             android:layout_gravity="center_vertical"
             android:background="@color/num_picker_background_color"
             android:textStyle="bold"
-            android:textSize="14dp"
+            android:textSize="14sp"
             />
         <ImageView
             android:layout_height="match_parent"
@@ -161,7 +165,7 @@
             android:layout_gravity="center_vertical"
             android:background="@color/num_picker_background_color"
             android:textStyle="bold"
-            android:textSize="14dp"
+            android:textSize="14sp"
             />
     </LinearLayout>
 </LinearLayout>

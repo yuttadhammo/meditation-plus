@@ -91,5 +91,8 @@
     <string name="loading_message">Please wait...</string>
     <string name="no_message">No message to send</string>
     <string name="no_time">Meditating for zero minutes not allowed.</string>
+    <string name="help_title">Meditation+ Help</string>
+    <string name="help">Help</string>
+    <string name="action_refresh">Refresh</string>
 
 </resources>

@@ -48,7 +48,6 @@ public class AdapterMed extends ArrayAdapter<JSONObject> {
         super(_context, resource, items);
         this.values = items;
         context = _context;
-
     }
 
     @Override
@@ -124,6 +123,8 @@ public class AdapterMed extends ArrayAdapter<JSONObject> {
 
             }
 
+
+
             walk.setText(ws);
             sit.setText(ss);
 
@@ -143,6 +144,10 @@ public class AdapterMed extends ArrayAdapter<JSONObject> {
                     context.showProfile(username);
                 }
             });
+
+            String type = p.getString("type");
+            if("love".equals(type))
+                status.setImageResource(R.drawable.love_icon);
 
         } catch (Exception e) {
             e.printStackTrace();

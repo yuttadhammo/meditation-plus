@@ -42,6 +42,11 @@
             android:label="@string/preferences" >
             >
         </activity>
+        <activity
+            android:name=".ActivityHelp"
+            android:label="@string/help_title" >
+            >
+        </activity>
         <receiver android:name=".ReceiverAlarm" ></receiver>
         <service android:name=".ScheduleService" />
         <service android:name=".TTSService" />

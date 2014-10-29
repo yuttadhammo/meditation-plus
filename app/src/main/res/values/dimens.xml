@@ -13,4 +13,6 @@
     <dimen name="button_separator_margin">6dp</dimen>
     <dimen name="online_right">4dp</dimen>
     <dimen name="time_field_width">50dp</dimen>
+    <dimen name="number_picker_height">50dp</dimen>
+    <dimen name="number_picker_width">40dp</dimen>
 </resources>

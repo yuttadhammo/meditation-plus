@@ -93,12 +93,12 @@
         <item>(swear)</item>
         <item>(tmi)</item>
         <item>(rock)</item>
+        <item>(peace)</item>
         <item>(bow)</item>
         <item>(bear)</item>
         <item>(y)</item>
         <item>(n)</item>
         <item>(handshake)</item>
-        <item>(skype)</item>
         <item>(h)</item>
         <item>(u)</item>
         <item>(e)</item>
@@ -181,12 +181,12 @@
         <item>emoticon_00183_swear</item>
         <item>emoticon_00184_tmi</item>
         <item>emoticon_00178_rock</item>
+        <item>emoticon_peace</item>
         <item>emoticon_00139_bow</item>
         <item>emoticon_00134_bear</item>
         <item>emoticon_00148_yes</item>
         <item>emoticon_00149_no</item>
         <item>emoticon_00150_handshake</item>
-        <item>emoticon_00151_skype</item>
         <item>emoticon_00152_heart</item>
         <item>emoticon_00153_brokenheart</item>
         <item>emoticon_00154_mail</item>

@@ -170,6 +170,11 @@ public class ActivityProfile extends ActionBarActivity {
                 return true;
             case android.R.id.home:
                 finish();
+            case R.id.action_help:
+                i = new Intent(this,ActivityHelp.class);
+                i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(i);
+                return true;
 
         }
 

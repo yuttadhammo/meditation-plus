@@ -66,7 +66,7 @@ public class AdapterChat extends ArrayAdapter<JSONObject> {
             id = context.getResources().getIdentifier(source,"drawable",context.getPackageName());
 
             Drawable d = context.getResources().getDrawable(id);
-            d.setBounds(0,0,d.getIntrinsicWidth(),d.getIntrinsicHeight());
+            d.setBounds(0,0,42,42);
             return d;
         }
     };

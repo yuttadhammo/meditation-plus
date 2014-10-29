@@ -214,13 +214,18 @@ public class ActivityPrefs extends PreferenceActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-
+        Intent i;
         switch(id) {
             case android.R.id.home:
                 finish();
                 return true;
             case R.id.action_htm:
                 Utils.openHTM(this);
+                return true;
+            case R.id.action_help:
+                i = new Intent(this,ActivityHelp.class);
+                i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(i);
                 return true;
         }
 

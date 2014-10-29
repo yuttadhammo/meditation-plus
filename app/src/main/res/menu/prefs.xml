@@ -9,4 +9,8 @@
         android:orderInCategory="80"
         android:icon="@android:drawable/ic_menu_edit"
         app:showAsAction="never" />
+    <item android:id="@+id/action_help"
+        android:title="@string/help"
+        android:orderInCategory="110"
+        app:showAsAction="never" />
 </menu>
