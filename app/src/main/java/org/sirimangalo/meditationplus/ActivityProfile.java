@@ -18,16 +18,20 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.TimeZone;
 
 /**
  * Created by noah on 10/16/14.
@@ -46,7 +50,6 @@ public class ActivityProfile extends ActionBarActivity {
 
     private String lastSubmit;
 
-    private JSONObject jsonFields;
     private TextView titleView;
     private TextView nameView;
     private TextView aboutView;
@@ -409,6 +412,46 @@ public class ActivityProfile extends ActionBarActivity {
                 ((Spinner) countryView).setSelection(idx);
             }
             else {
+
+                Calendar utc = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+                int hour = utc.get(Calendar.HOUR_OF_DAY);
+
+                int max_height = 100;
+
+                LinearLayout hll = (LinearLayout) findViewById(R.id.time_log);
+
+                if(hll == null)
+                    return;
+
+                hll.removeAllViews();
+
+                JSONArray jsonLogged = jsonFields.getJSONArray("hours");
+
+                try {
+                    int max_hour = jsonLogged.getInt(0);
+                    for(int i = 1; i < jsonLogged.length(); i++){
+                        max_hour = Math.max(max_hour,jsonLogged.getInt(i));
+                    }
+                    for(int i = 0; i < jsonLogged.length(); i++){
+                        int height = (int) Math.ceil(max_height*jsonLogged.getInt(i)/max_hour);
+                        LinearLayout ll = (LinearLayout) getLayoutInflater().inflate(R.layout.list_item_log, null);
+
+                        ImageView iv = (ImageView) ll.findViewById(R.id.min_cell);
+                        iv.getLayoutParams().height = height;
+                        iv.getLayoutParams().width = hll.getWidth()/24;
+                        TextView tv = (TextView) ll.findViewById(R.id.hour_no);
+                        tv.setText(i+"");
+                        if(hour == i)
+                            tv.setBackgroundColor(0xFFFFFF33);
+                        ImageView sv = (ImageView) ll.findViewById(R.id.space_cell);
+                        sv.getLayoutParams().height = 100-height;
+                        hll.addView(ll);
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
                 if(jsonFields.has("country")) {
                     int fid = getResources().getIdentifier("flag_"+jsonFields.getString("country").toLowerCase(),"drawable", getPackageName());
                     flagView.setImageResource(fid);

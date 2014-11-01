@@ -94,5 +94,12 @@
     <string name="help_title">Meditation+ Help</string>
     <string name="help">Help</string>
     <string name="action_refresh">Refresh</string>
+    <string name="coming_commit">You have a commitment starting in %d minutes</string>
+    <string name="coming_commit_1">You have a commmitment starting in 1 minute</string>
+    <string name="alarm_vibrate">Vibrate</string>
+    <string name="alarm_vibrate_desc">provide haptic feedback for alarm</string>
+    <string name="alarm_led">Blink LED</string>
+    <string name="alarm_led_desc">Cause the LED light to blink when the alarm goes off</string>
+    <string name="profile_log">Meditation Log</string>
 
 </resources>

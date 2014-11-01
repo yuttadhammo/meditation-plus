@@ -31,5 +31,15 @@
             android:summary="@string/play_sound_desc"
             android:key="play_sound"
             />
+        <CheckBoxPreference
+            android:title="@string/alarm_vibrate"
+            android:summary="@string/alarm_vibrate_desc"
+            android:key="alarm_vibrate"
+            />
+        <CheckBoxPreference
+            android:title="@string/alarm_led"
+            android:summary="@string/alarm_led_desc"
+            android:key="alarm_led"
+            />
     </PreferenceCategory>
 </PreferenceScreen>

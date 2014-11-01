@@ -23,8 +23,29 @@
     <ImageView
         android:layout_height="1dp"
         android:layout_width="match_parent"
-        android:background="@color/num_picker_separator"
+        android:background="@color/separator"
         />
+    <LinearLayout
+        android:id="@+id/coming_commit_shell"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:orientation="vertical"
+        >
+        <TextView
+            android:text="@string/online"
+            android:id="@+id/coming_commit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="6dp"
+            android:background="#FFFFFFDD"
+            />
+        <ImageView
+            android:layout_height="1dp"
+            android:layout_width="match_parent"
+            android:background="@color/separator"
+            />
+    </LinearLayout>
     <android.support.v4.view.ViewPager
         android:id="@+id/pager"
         android:layout_width="match_parent"

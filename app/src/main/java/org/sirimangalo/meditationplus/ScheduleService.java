@@ -1,8 +1,6 @@
 package org.sirimangalo.meditationplus;
 
 
-import java.util.Calendar;
-
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
@@ -39,9 +37,9 @@ public class ScheduleService extends Service {
     /**
      * Show an alarm for a certain date when the alarm is called it will pop up a notification
      */
-    public void setAlarm(int periodTime, int time, String type) {
+    public void setAlarm(int walking, int sitting) {
         // This starts a new thread to set the alarm
         // You want to push off your tasks onto a new thread to free up the UI to carry on responding
-        new AlarmTask(this, periodTime, time, type).run();
+        new AlarmTask(this, walking, sitting).run();
     }
 }

@@ -1,7 +1,5 @@
 package org.sirimangalo.meditationplus;
 
-import java.util.Calendar;
-
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -54,13 +52,12 @@ public class ScheduleClient {
 
     /**
      * Tell our service to set an alarm for the given date
-     * @param time time to set service for
      */
-    public void setAlarmForNotification(int periodTime, int time, String type){
+    public void setAlarmForNotification(int walking, int sitting){
         if(mBoundService == null)
             return;
 
-        mBoundService.setAlarm(periodTime, time, type);
+        mBoundService.setAlarm(walking, sitting);
     }
 
     /**

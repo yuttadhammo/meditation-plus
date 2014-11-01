@@ -159,6 +159,9 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
     private static ArrayList<JSONObject> medArray;
     private InputMethodManager inputManager;
 
+    private ArrayList<JSONObject> myCommitments;
+    public static ArrayList<Boolean> openCommitments = new ArrayList<Boolean>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -177,8 +180,8 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
 
         mAlarmMgr = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(this, ReceiverAlarm.class);
-        walkPendingIntent = PendingIntent.getBroadcast((Context)context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        sitPendingIntent = PendingIntent.getBroadcast((Context)context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        walkPendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        sitPendingIntent = PendingIntent.getBroadcast(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         mNM = (NotificationManager)this.getSystemService(Context.NOTIFICATION_SERVICE);
 
         setContentView(R.layout.activity_main);
@@ -289,7 +292,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         if(!loginToken.equals("")) {
             username = prefs.getString("username","");
             password = "";
-            doSubmit(null, new ArrayList<NameValuePair>(), true);
+            doSubmit(null, new ArrayList<NameValuePair>(), false);
         }
     }
 
@@ -572,6 +575,10 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         postTask.doPostTask(nvp);
     }
 
+    public void setCommitVisible(int position, boolean visible) {
+        openCommitments.set(position,visible);
+    }
+
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
@@ -813,6 +820,52 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                     }
                 }
 
+                // check if upcoming commitments
+
+                if(myCommitments.size() > 0) {
+
+
+                    Calendar utc = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+                    int day = utc.get(Calendar.DAY_OF_MONTH);
+                    int weekday = utc.get(Calendar.DAY_OF_WEEK);
+                    int hour = utc.get(Calendar.HOUR_OF_DAY);
+                    int minute = utc.get(Calendar.MINUTE);
+
+                    int time = hour*60 + minute;
+
+                    int nextCommit = 60;
+
+                    for(JSONObject obj : myCommitments){
+
+                        String period = obj.getString("period");
+                        String t = obj.getString("time");
+
+                        if(period.equals("daily")) {
+
+                            if (!t.contains(":"))
+                                continue;
+
+                            String[] ta = TextUtils.split(t, ":");
+                            int ah = Integer.parseInt(ta[0]);
+                            int am = Integer.parseInt(ta[1]);
+                            int at = ah*60 + am;
+                            int diff = at - time;
+                            if(diff > 0 && diff < nextCommit){
+                                nextCommit = diff;
+                            }
+                        }
+
+                    }
+
+                    if(nextCommit < 60) {
+                        findViewById(R.id.coming_commit_shell).setVisibility(View.VISIBLE);
+                        ((TextView)findViewById(R.id.coming_commit)).setText(nextCommit > 1?String.format(getString(R.string.coming_commit),nextCommit):getString(R.string.coming_commit_1));
+
+                    }
+                    else
+                        findViewById(R.id.coming_commit_shell).setVisibility(View.GONE);
+                }
+
             } catch (Exception e) {
                 //Log.e(TAG,"ERROR");
                 e.printStackTrace();
@@ -867,7 +920,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
     }
 
     private void populateChat(JSONArray chats, boolean admin) {
-        if((ListView) findViewById(R.id.chat_list) == null)
+        if(findViewById(R.id.chat_list) == null)
             return;
         chatList = (ListView) findViewById(R.id.chat_list);
 
@@ -930,7 +983,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
     }
 
     private void populateMeds(JSONArray meds) {
-        if((ListView) findViewById(R.id.med_list) == null)
+        if(findViewById(R.id.med_list) == null)
             return;
         medList = (ListView) findViewById(R.id.med_list);
 
@@ -943,11 +996,8 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                     if (startMeditating) {
                         startMeditating = false;
 
-                        if (lastWalking > 0)
-                            scheduleClient.setAlarmForNotification(lastWalking, lastWalking, getString(R.string.walking));
-
-                        if (lastSitting > 0)
-                            scheduleClient.setAlarmForNotification(lastSitting, lastWalking + lastSitting, getString(R.string.sitting));
+                        if (lastWalking > 0 || lastSitting > 0)
+                            scheduleClient.setAlarmForNotification(lastWalking, lastSitting);
                     }
 
                     if(med.getString("type").equals("love")) {
@@ -980,22 +1030,52 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
     }
 
     private void populateCommit(JSONArray commitJ) {
-        if((ListView) findViewById(R.id.commit_list) == null)
+        if(findViewById(R.id.commit_list) == null)
             return;
+
         commitList = (ListView) findViewById(R.id.commit_list);
+
+        myCommitments = new ArrayList<JSONObject>();
 
         ArrayList<JSONObject> commitArray = new ArrayList<JSONObject>();
         for(int i = 0; i < commitJ.length(); i++) {
             try {
-                JSONObject med = commitJ.getJSONObject(i);
-                commitArray.add(med);
+                JSONObject commit = commitJ.getJSONObject(i);
+                if(commit.getString("type").equals("repeat")) {
+                    JSONObject usersJ = commit.getJSONObject("users");
+                    for(int j = 0; j < usersJ.names().length(); j++) {
+                        if(usersJ.names().get(j).equals(username)) {
+                            myCommitments.add(commit);
+                        }
+                    }
+                }
+
+                if(openCommitments.size() == i) {
+                    openCommitments.add(false);
+                    commit.put("open", false);
+                }
+                else
+                    commit.put("open", openCommitments.get(i));
+
+                commitArray.add(commit);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
 
-        AdapterCommit adapter = new AdapterCommit(this, R.layout.list_item_med, commitArray, username);
+        // save index and top position
+        int index = commitList.getFirstVisiblePosition();
+        View v = commitList.getChildAt(0);
+        int top = (v == null) ? 0 : v.getTop();
+
+        AdapterCommit adapter = new AdapterCommit(this, R.layout.list_item_commit, commitArray, username);
         commitList.setAdapter(adapter);
+
+        // restore index and position
+
+        commitList.setSelectionFromTop(index, top);
+
+
     }
 
     private void populateOnline(JSONArray onlines) {
@@ -1030,10 +1110,8 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
 
         span.setSpan(new StyleSpan(Typeface.BOLD), 0, pos, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE); // bold the "Online: "
 
-        for(int i = 0; i < onlineArray.size(); i++) {
+        for(final String oneOn : onlineArray) {
             try {
-
-                final String oneOn = onlineArray.get(i);
 
                 int end = pos+oneOn.length();
 

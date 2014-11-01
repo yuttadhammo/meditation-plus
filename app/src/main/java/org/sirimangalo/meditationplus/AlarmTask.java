@@ -1,13 +1,10 @@
 package org.sirimangalo.meditationplus;
 
-import java.util.Calendar;
-
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-import android.util.Log;
 
 /**
  * Set an alarm for the date passed into the constructor
@@ -22,42 +19,55 @@ import android.util.Log;
 public class AlarmTask implements Runnable{
     // The date selected for the alarm
     private String TAG = "AlarmTask";
-    private int time;
-    private int periodTime;
-    private String type;
+    private int sitting;
+    private int walking;
 
     // The android system alarm manager
     private final AlarmManager mAlarmMgr;
     // Your context to retrieve the alarm manager from
     private final Context context;
 
-    public AlarmTask(Context context, int _periodTime, int _time, String _type) {
+    public AlarmTask(Context context, int _walking, int _sitting) {
         this.context = context;
         this.mAlarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        this.periodTime = _periodTime;
-        this.time = _time;
-        this.type = _type;
+        this.walking = _walking;
+        this.sitting = _sitting;
     }
 
     @Override
     public void run() {
+
+        PendingIntent mPendingIntent;
         Intent intent = new Intent(context, ReceiverAlarm.class);
-        intent.putExtra("period_time", periodTime);
-        intent.putExtra("time", time);
-        intent.putExtra("type", type);
+        if(walking > 0) {
+            intent.putExtra("period_time", walking);
+            intent.putExtra("time", walking);
+            intent.putExtra("type", context.getString(R.string.walking));
+            int mTime = walking * 60 * 1000;
 
-        int mTime = time * 60 * 1000;
-
-        int id = type.equals(context.getString(R.string.walking)) ? 0 : 1;
-
-        //Log.d(TAG, String.format(context.getString(R.string.alarm_desc), intent.getStringExtra("type"), intent.getIntExtra("period_time",0)));
-
-        PendingIntent mPendingIntent = PendingIntent.getBroadcast(context, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        if (Build.VERSION.SDK_INT >= 19) {
-            mAlarmMgr.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mTime, mPendingIntent);
+            mPendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            if (Build.VERSION.SDK_INT >= 19) {
+                mAlarmMgr.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mTime, mPendingIntent);
+            }
+            else {
+                mAlarmMgr.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mTime, mPendingIntent);
+            }
         }
-        else {
-            mAlarmMgr.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mTime, mPendingIntent);
+
+        if(sitting > 0) {
+            intent.putExtra("period_time", sitting);
+            intent.putExtra("time", walking+sitting);
+            intent.putExtra("type", context.getString(R.string.sitting));
+            int mTime = (walking+sitting) * 60 * 1000;
+
+            mPendingIntent = PendingIntent.getBroadcast(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            if (Build.VERSION.SDK_INT >= 19) {
+                mAlarmMgr.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mTime, mPendingIntent);
+            }
+            else {
+                mAlarmMgr.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mTime, mPendingIntent);
+            }
         }
+
     }
 }

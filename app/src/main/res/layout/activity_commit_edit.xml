@@ -44,7 +44,7 @@
         <ImageView
             android:layout_height="1dp"
             android:layout_width="match_parent"
-            android:background="@color/num_picker_separator"
+            android:background="@color/separator"
             />
         <TextView
             android:layout_width="match_parent"
@@ -63,7 +63,7 @@
         <ImageView
             android:layout_height="1dp"
             android:layout_width="match_parent"
-            android:background="@color/num_picker_separator"
+            android:background="@color/separator"
             />
         <TextView
             android:layout_width="match_parent"
@@ -131,7 +131,7 @@
             <ImageView
                 android:layout_height="1dp"
                 android:layout_width="match_parent"
-                android:background="@color/num_picker_separator"
+                android:background="@color/separator"
                 />
         </LinearLayout>
         <LinearLayout
@@ -191,7 +191,7 @@
             <ImageView
                 android:layout_height="1dp"
                 android:layout_width="match_parent"
-                android:background="@color/num_picker_separator"
+                android:background="@color/separator"
                 />
         </LinearLayout>
         <LinearLayout
@@ -218,7 +218,7 @@
             <ImageView
                 android:layout_height="1dp"
                 android:layout_width="match_parent"
-                android:background="@color/num_picker_separator"
+                android:background="@color/separator"
                 />
         </LinearLayout>
         <LinearLayout
@@ -247,7 +247,7 @@
             <ImageView
                 android:layout_height="1dp"
                 android:layout_width="match_parent"
-                android:background="@color/num_picker_separator"
+                android:background="@color/separator"
                 />
         </LinearLayout>
         <LinearLayout
@@ -276,7 +276,7 @@
             <ImageView
                 android:layout_height="1dp"
                 android:layout_width="match_parent"
-                android:background="@color/num_picker_separator"
+                android:background="@color/separator"
                 />
         </LinearLayout>
         <LinearLayout

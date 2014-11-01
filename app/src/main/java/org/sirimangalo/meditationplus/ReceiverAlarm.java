@@ -17,7 +17,6 @@ package org.sirimangalo.meditationplus;
     along with Bodhi Timer.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -27,16 +26,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.SystemClock;
-import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
-
-import java.io.IOException;
-import java.util.Date;
 
 public class ReceiverAlarm extends BroadcastReceiver {
     private final static String TAG = "TimerReceiver";
@@ -91,8 +85,8 @@ public class ReceiverAlarm extends BroadcastReceiver {
 
         // Load the settings
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        boolean led = prefs.getBoolean("LED",true);
-        boolean vibrate = prefs.getBoolean("Vibrate",true);
+        boolean led = prefs.getBoolean("alarm_led",true);
+        boolean vibrate = prefs.getBoolean("alarm_vibrate",true);
         String notificationUri = prefs.getString("notification_uri", "android.resource://org.sirimangalo.meditationplus/" + R.raw.bell);
 
         Log.v(TAG,"notification uri: "+notificationUri);
@@ -154,15 +148,6 @@ public class ReceiverAlarm extends BroadcastReceiver {
         NotificationManager mNotificationManager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
-        // Create intent for cancelling the notification
-        Context appContext = context.getApplicationContext();
-        Intent intent = new Intent(appContext, ActivityMain.class);
-        intent.setAction(CANCEL_NOTIFICATION);
-
-        // Cancel the pending cancellation and create a new one
-        PendingIntent pendingCancelIntent =
-                PendingIntent.getBroadcast(appContext, 0, intent,
-                        PendingIntent.FLAG_CANCEL_CURRENT);
 
         mNotificationManager.notify(0, mBuilder.build());
 

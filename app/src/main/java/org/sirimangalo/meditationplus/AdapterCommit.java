@@ -81,8 +81,11 @@ public class AdapterCommit extends ArrayAdapter<JSONObject> {
         rowView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                boolean visible = shell.getVisibility() ==  View.VISIBLE;
 
-                shell.setVisibility(shell.getVisibility() ==  View.GONE ? View.VISIBLE : View.GONE);
+                shell.setVisibility( visible ? View.GONE : View.VISIBLE);
+
+                context.setCommitVisible(position, !visible);
 
             }
         });
@@ -96,6 +99,10 @@ public class AdapterCommit extends ArrayAdapter<JSONObject> {
         TextView youV = (TextView) rowView.findViewById(R.id.you);
 
         try {
+
+            if(p.getBoolean("open"))
+                shell.setVisibility(View.VISIBLE);
+
             title.setText(p.getString("title"));
             descV.setText(p.getString("description"));
 

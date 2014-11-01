@@ -24,7 +24,7 @@
         <ImageView
             android:layout_height="match_parent"
             android:layout_width="1dp"
-            android:background="@color/num_picker_separator"
+            android:background="@color/separator"
             />
         <Button
             android:id="@+id/chat_send"
@@ -36,7 +36,7 @@
         <ImageView
             android:layout_height="match_parent"
             android:layout_width="1dp"
-            android:background="@color/num_picker_separator"
+            android:background="@color/separator"
             />
         <Button
             android:id="@+id/smily_button"
@@ -52,7 +52,7 @@
         android:layout_above="@id/chat_form"
         android:layout_height="1dp"
         android:layout_width="match_parent"
-        android:background="@color/num_picker_separator"
+        android:background="@color/separator"
         />
     <ListView
         android:id="@+id/chat_list"
@@ -70,7 +70,7 @@
         android:layout_alignParentRight="true"
         android:layout_above="@id/chat_form"
         android:padding="1dp"
-        android:background="@color/num_picker_separator"
+        android:background="@color/separator"
         android:visibility="gone"
         >
         <GridView

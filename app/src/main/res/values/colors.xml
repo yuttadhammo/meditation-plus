@@ -2,5 +2,5 @@
 <resources>
     <color name="num_picker_color">#FFDDDDDD</color>
     <color name="num_picker_background_color">#FFEEEEEE</color>
-    <color name="num_picker_separator">#FFAAAAAA</color>
+    <color name="separator">#FFAAAAAA</color>
 </resources>

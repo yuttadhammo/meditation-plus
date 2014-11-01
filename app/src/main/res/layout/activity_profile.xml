@@ -106,6 +106,21 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/country_field"
                 />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/profile_log"
+                android:id="@+id/log_label"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:paddingTop="10dp"
+                />
+            <LinearLayout
+                android:id="@+id/time_log"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
