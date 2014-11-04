@@ -360,12 +360,66 @@ public class ActivityCommit extends ActionBarActivity {
 
         String type = typeRadios.getCheckedRadioButtonId() == R.id.type_total ? "total" : "repeat";
 
-        String length;
-        if(type.equals("total"))
-            nvp.add(new BasicNameValuePair("length", amountView.getText().toString()));
+        String length = amountView.getText().toString();
+
+        boolean specTime = specCheck.isChecked();
+
+        String hour = hourView.getText().toString();
+        String min = minView.getText().toString();
+
+        String walking = walkView.getText().toString();
+        String sitting = sitView.getText().toString();
+
+        // checks
+
+        if(title.length() == 0 || title.length() > 20) {
+            Toast.makeText(this, R.string.invalid_title, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(desc.length() > 200) {
+            Toast.makeText(this, R.string.invalid_desc, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(type.equals("total") && length.length() == 0 || length.matches("[^0-9]")) {
+            Toast.makeText(this, R.string.invalid_amount, Toast.LENGTH_SHORT).show();
+            return;
+        }
         else {
-            nvp.add(new BasicNameValuePair("walking", walkView.getText().toString()));
-            nvp.add(new BasicNameValuePair("sitting", sitView.getText().toString()));
+            if(walking.length() == 0 || walking.matches("[^0-9]") || walking.length() > 2) {
+                Toast.makeText(this, R.string.invalid_walking, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if(sitting.length() == 0 || sitting.matches("[^0-9]") || sitting.length() > 2) {
+                Toast.makeText(this, R.string.invalid_sitting, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if(period.equals("monthly") && dom.length() == 0 || dom.matches("[^0-9]") || dom.length() > 2) {
+                Toast.makeText(this, R.string.invalid_dom, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if(period.equals("yearly") && doy.length() == 0 || doy.matches("[^0-9]") || doy.length() > 3) {
+                Toast.makeText(this, R.string.invalid_doy, Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+
+        if(specTime) {
+            if(hour.length() == 0 || hour.matches("[^0-9]") || hour.length() > 2) {
+                Toast.makeText(this,R.string.invalid_hour, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if(min.length() == 0 || min.matches("[^0-9]") || min.length() > 2) {
+                Toast.makeText(this,R.string.invalid_min, Toast.LENGTH_SHORT).show();
+                return;
+            }
+        }
+
+
+        if(type.equals("total"))
+            nvp.add(new BasicNameValuePair("length", length));
+        else {
+            nvp.add(new BasicNameValuePair("walking", walking));
+            nvp.add(new BasicNameValuePair("sitting", sitting));
 
             if(period.equals("weekly")) {
                 nvp.add(new BasicNameValuePair("dow", dow+""));
@@ -378,17 +432,11 @@ public class ActivityCommit extends ActionBarActivity {
             }
         }
 
-        boolean specTime = specCheck.isChecked();
-
-        String hour = hourView.getText().toString();
-        String min = minView.getText().toString();
-
         nvp.add(new BasicNameValuePair("title", title));
         nvp.add(new BasicNameValuePair("desc", desc));
         nvp.add(new BasicNameValuePair("period", period));
         nvp.add(new BasicNameValuePair("type", type));
 
-        String time;
         if(specTime) {
             nvp.add(new BasicNameValuePair("spec-time", "true"));
             nvp.add(new BasicNameValuePair("hour", hour));

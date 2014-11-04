@@ -35,6 +35,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.ShareCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
@@ -64,6 +65,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.NumberPicker;
+import android.widget.ShareActionProvider;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -148,8 +150,6 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
     private boolean startMeditating = false;
 
     private ScheduleClient scheduleClient;
-    private PendingIntent walkPendingIntent;
-    private PendingIntent sitPendingIntent;
     private AlarmManager mAlarmMgr;
     public NotificationManager mNM;
 
@@ -161,6 +161,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
 
     private ArrayList<JSONObject> myCommitments;
     public static ArrayList<Boolean> openCommitments = new ArrayList<Boolean>();
+    private ShareActionProvider mShareActionProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -179,9 +180,6 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         scheduleClient.doBindService();
 
         mAlarmMgr = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(this, ReceiverAlarm.class);
-        walkPendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        sitPendingIntent = PendingIntent.getBroadcast(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         mNM = (NotificationManager)this.getSystemService(Context.NOTIFICATION_SERVICE);
 
         setContentView(R.layout.activity_main);
@@ -317,6 +315,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+
         return true;
     }
 
@@ -356,6 +355,17 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                 i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(i);
                 return true;
+            case R.id.action_share:
+
+
+                String playStoreLink = "https://play.google.com/store/apps/details?id=" +
+                        getPackageName();
+                String yourShareText = playStoreLink;
+                Intent shareIntent = ShareCompat.IntentBuilder.from(this)
+                        .setType("text/plain").setText(yourShareText).setSubject("Meditation Plus").getIntent();
+                // Set the share Intent
+                startActivity(Intent.createChooser(shareIntent, "Share App via"));
+                return true;
         }
 
 
@@ -394,7 +404,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                     return;
                 }
                 if(messageT.length() > 140) {
-                    Toast.makeText(this,R.string.message_too_log,Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this,R.string.message_too_long,Toast.LENGTH_SHORT).show();
                     return;
                 }
                 nvp.add(new BasicNameValuePair("message", messageT));
@@ -424,6 +434,10 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                 doSubmit("timeform", nvp, true);
                 break;
             case R.id.med_cancel:
+
+                Intent rIntent = new Intent(this, ReceiverAlarm.class);
+                PendingIntent walkPendingIntent = PendingIntent.getBroadcast(context, 0, rIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                PendingIntent sitPendingIntent = PendingIntent.getBroadcast(context, 1, rIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
                 mAlarmMgr.cancel(walkPendingIntent);
                 mAlarmMgr.cancel(sitPendingIntent);

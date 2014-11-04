@@ -61,17 +61,10 @@ public class ReceiverAlarm extends BroadcastReceiver {
             }
         }
 
-        // Cancel notification and return...
-        if (CANCEL_NOTIFICATION.equals(pIntent.getAction())) {
-            Log.v(TAG,"Cancelling notification...");
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 
-            mNM.cancelAll();
+        if(!prefs.getBoolean("set_alarm",false))
             return;
-        }
-
-        // ...or display a new one
-
-        Log.v(TAG,"Showing notification...");
 
         player = new MediaPlayer();
 
@@ -84,7 +77,6 @@ public class ReceiverAlarm extends BroadcastReceiver {
         Log.v(TAG,"Notification: "+desc);
 
         // Load the settings
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         boolean led = prefs.getBoolean("alarm_led",true);
         boolean vibrate = prefs.getBoolean("alarm_vibrate",true);
         String notificationUri = prefs.getString("notification_uri", "android.resource://org.sirimangalo.meditationplus/" + R.raw.bell);
@@ -102,9 +94,6 @@ public class ReceiverAlarm extends BroadcastReceiver {
             ttsIntent.putExtra("spoken_text", ttsString);
             context.startService(ttsIntent);
         }
-
-        if(notificationUri.equals(""))
-            return;
 
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(context.getApplicationContext())

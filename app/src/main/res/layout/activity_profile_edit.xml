@@ -58,6 +58,28 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:id="@+id/img_label"
+                android:text="@string/avatar"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:paddingTop="10dp"
+                />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/img_desc"
+                android:text="@string/avatar_desc"
+                android:textStyle="italic"
+                />
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/img_field"
+                android:inputType="textUri"
+                />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:id="@+id/email_label"
                 android:text="@string/email"
                 android:textStyle="bold"

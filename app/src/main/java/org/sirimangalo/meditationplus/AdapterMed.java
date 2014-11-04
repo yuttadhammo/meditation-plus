@@ -53,9 +53,14 @@ public class AdapterMed extends ArrayAdapter<JSONObject> {
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
 
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View rowView;
 
-        View rowView = inflater.inflate(R.layout.list_item_med, parent, false);
+        if (convertView == null) {
+            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            rowView = inflater.inflate(R.layout.list_item_med, parent, false);
+        } else {
+            rowView = convertView;
+        }
 
         JSONObject p = values.get(position);
 
@@ -87,7 +92,7 @@ public class AdapterMed extends ArrayAdapter<JSONObject> {
 
                 float secs = now - ti;
 
-                if (secs > wi * 60) { //walking done
+                if (secs > wi * 60 || wi == 0) { //walking done
                     float ssecs = (int) (secs - (wi * 60));
                     if (ssecs < si * 60) // still sitting
                         ss = Integer.toString((int) Math.floor(si - ssecs / 60));

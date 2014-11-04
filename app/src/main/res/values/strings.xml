@@ -54,7 +54,7 @@
     <string name="about_too_long"><![CDATA[About text too long (>255 chars)]]></string>
     <string name="email_too_long"><![CDATA[Email address too long (>50 chars)]]></string>
     <string name="website_too_long"><![CDATA[Website URL too long (>100 chars)]]></string>
-    <string name="message_too_log"><![CDATA[Message too long (>140 chars)]]></string>
+    <string name="message_too_long"><![CDATA[Message too long (>140 chars)]]></string>
     <string name="commited_x">Committed: %s</string>
     <string name="you_commit_x">You have completed %d%% of your commitment.</string>
     <string name="action_htm">Guide</string>
@@ -88,18 +88,32 @@
     <string name="stop_playing_sound">stop currently playing sound</string>
     <string name="status">Status</string>
     <string name="processing">Processing</string>
-    <string name="loading_message">Please wait...</string>
+    <string name="loading_message">Please wait…</string>
     <string name="no_message">No message to send</string>
     <string name="no_time">Meditating for zero minutes not allowed.</string>
     <string name="help_title">Meditation+ Help</string>
     <string name="help">Help</string>
     <string name="action_refresh">Refresh</string>
     <string name="coming_commit">You have a commitment starting in %d minutes</string>
-    <string name="coming_commit_1">You have a commmitment starting in 1 minute</string>
+    <string name="coming_commit_1">You have a commitment starting in 1 minute</string>
     <string name="alarm_vibrate">Vibrate</string>
     <string name="alarm_vibrate_desc">provide haptic feedback for alarm</string>
     <string name="alarm_led">Blink LED</string>
     <string name="alarm_led_desc">Cause the LED light to blink when the alarm goes off</string>
-    <string name="profile_log">Meditation Log</string>
+    <string name="profile_log">Meditation Graph (past seven days)</string>
+    <string name="share">Share</string>
+    <string name="invalid_hour">Invalid hour entry</string>
+    <string name="invalid_min">Invalid minute entry</string>
+    <string name="invalid_amount">Invalid amount entry</string>
+    <string name="invalid_walking">Invalid walking entry</string>
+    <string name="invalid_sitting">Invalid sitting entry</string>
+    <string name="invalid_doy">Invalid day of year entry</string>
+    <string name="invalid_dom">Invalid day of month entry</string>
+    <string name="invalid_title">Invalid title entry</string>
+    <string name="invalid_desc">Invalid description entry</string>
+    <string name="set_alarm">Set Alarm</string>
+    <string name="set_alarm_desc">Create notifications for the end of walking and sitting</string>
+    <string name="avatar">Avatar URL</string>
+    <string name="avatar_desc">if empty, will use email to determine a gravatar from www.gravatar.com</string>
 
 </resources>

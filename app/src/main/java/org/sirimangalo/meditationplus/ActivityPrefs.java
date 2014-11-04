@@ -14,6 +14,7 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
@@ -78,7 +79,7 @@ public class ActivityPrefs extends PreferenceActivity {
             entryMap.put(entryValues[i],entries[i]);
         }
 
-        ListPreference tone = (ListPreference)findPreference("notification_uri");
+        final ListPreference tone = (ListPreference)findPreference("notification_uri");
         play = (Preference)findPreference("play_sound");
 
         //Default value
@@ -201,6 +202,35 @@ public class ActivityPrefs extends PreferenceActivity {
 
         });
 
+        final CheckBoxPreference alarm = (CheckBoxPreference) findPreference("set_alarm");
+        final CheckBoxPreference vibrate = (CheckBoxPreference) findPreference("alarm_vibrate");
+        final CheckBoxPreference led = (CheckBoxPreference) findPreference("alarm_led");
+        if(!alarm.isChecked()) {
+            tone.setEnabled(false);
+            play.setEnabled(false);
+            vibrate.setEnabled(false);
+            led.setEnabled(false);
+        }
+            
+        alarm.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object o) {
+                if((Boolean) o) {
+                    tone.setEnabled(true);
+                    play.setEnabled(true);
+                    vibrate.setEnabled(true);
+                    led.setEnabled(true);
+                }
+                else {
+                    tone.setEnabled(false);
+                    play.setEnabled(false);
+                    vibrate.setEnabled(false);
+                    led.setEnabled(false);
+                }
+
+                return true;
+            }
+        });
 
     }
 

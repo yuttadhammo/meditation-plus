@@ -37,35 +37,36 @@ public class AlarmTask implements Runnable{
     @Override
     public void run() {
 
-        PendingIntent mPendingIntent;
-        Intent intent = new Intent(context, ReceiverAlarm.class);
         if(walking > 0) {
-            intent.putExtra("period_time", walking);
-            intent.putExtra("time", walking);
-            intent.putExtra("type", context.getString(R.string.walking));
+            PendingIntent wPendingIntent;
+            Intent wIntent = new Intent(context, ReceiverAlarm.class);
+            wIntent.putExtra("period_time", walking);
+            wIntent.putExtra("time", walking);
+            wIntent.putExtra("type", context.getString(R.string.walking));
             int mTime = walking * 60 * 1000;
 
-            mPendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            wPendingIntent = PendingIntent.getBroadcast(context, 0, wIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             if (Build.VERSION.SDK_INT >= 19) {
-                mAlarmMgr.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mTime, mPendingIntent);
+                mAlarmMgr.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mTime, wPendingIntent);
             }
             else {
-                mAlarmMgr.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mTime, mPendingIntent);
+                mAlarmMgr.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mTime, wPendingIntent);
             }
         }
 
         if(sitting > 0) {
-            intent.putExtra("period_time", sitting);
-            intent.putExtra("time", walking+sitting);
-            intent.putExtra("type", context.getString(R.string.sitting));
+            Intent sIntent = new Intent(context, ReceiverAlarm.class);
+            sIntent.putExtra("period_time", sitting);
+            sIntent.putExtra("time", walking + sitting);
+            sIntent.putExtra("type", context.getString(R.string.sitting));
             int mTime = (walking+sitting) * 60 * 1000;
 
-            mPendingIntent = PendingIntent.getBroadcast(context, 1, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent sPendingIntent = PendingIntent.getBroadcast(context, 1, sIntent, PendingIntent.FLAG_UPDATE_CURRENT);
             if (Build.VERSION.SDK_INT >= 19) {
-                mAlarmMgr.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mTime, mPendingIntent);
+                mAlarmMgr.setExact(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mTime, sPendingIntent);
             }
             else {
-                mAlarmMgr.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mTime, mPendingIntent);
+                mAlarmMgr.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + mTime, sPendingIntent);
             }
         }
 

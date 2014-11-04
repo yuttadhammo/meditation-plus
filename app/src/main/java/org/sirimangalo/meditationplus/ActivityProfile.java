@@ -5,6 +5,9 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -29,6 +32,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.TimeZone;
@@ -57,6 +61,7 @@ public class ActivityProfile extends ActionBarActivity {
     private TextView websiteView;
     private View countryView;
     private CheckBox showEmailView;
+    private View avatarView;
 
     private String oldName;
     private String[] ccodes;
@@ -369,6 +374,9 @@ public class ActivityProfile extends ActionBarActivity {
     };
 
     private void populateFields(JSONObject jsonFields, boolean isAdmin) {
+
+        boolean edit = getIntent().hasExtra("edit");
+
         titleView = (TextView) findViewById(R.id.profile_title);
         flagView = (ImageView) findViewById(R.id.profile_flag);
         nameView = (TextView) findViewById(R.id.name_field);
@@ -379,7 +387,25 @@ public class ActivityProfile extends ActionBarActivity {
         countryView = findViewById(R.id.country_field);
         showEmailView = (CheckBox) findViewById(R.id.show_email_field);
 
+        avatarView = findViewById(R.id.img_field);
+
         try {
+            if(edit) {
+                if (jsonFields.has("img") && jsonFields.getString("img").length() > 0)
+                    ((TextView) avatarView).setText(jsonFields.getString("img"));
+            }
+            else {
+                String img = "http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm&f=y&s=100";
+                if (jsonFields.has("img") && jsonFields.getString("img").length() > 0)
+                    img = jsonFields.getString("img");
+                else if (jsonFields.has("email") && jsonFields.getString("email").length() > 0)
+                    img = "http://www.gravatar.com/avatar/" + Utils.getMD5Hash(jsonFields.getString("email")) + "?d=mm&s=100";
+
+                // show The Image
+                new DownloadImageTask((ImageView) avatarView)
+                        .execute(img);
+            }
+
             uid = jsonFields.getString("uid");
             oldName = jsonFields.getString("username");
 
@@ -388,7 +414,8 @@ public class ActivityProfile extends ActionBarActivity {
             String website = jsonFields.has("website")? jsonFields.getString("website"):"";
 
             titleView.setText(String.format(getString(R.string.s_profile),oldName));
-            nameView.setText(oldName);
+            if(nameView != null)
+                nameView.setText(oldName);
             aboutView.setText(desc);
             emailView.setText(email);
             websiteView.setText(website);
@@ -404,7 +431,7 @@ public class ActivityProfile extends ActionBarActivity {
                 }
             }
 
-            if(getIntent().hasExtra("edit")) {
+            if(edit) {
                 showEmailView.setChecked(jsonFields.getInt("show_email") == 1);
                 ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.country_names, android.R.layout.simple_spinner_item);
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -426,26 +453,27 @@ public class ActivityProfile extends ActionBarActivity {
                 hll.removeAllViews();
 
                 JSONArray jsonLogged = jsonFields.getJSONArray("hours");
-
                 try {
                     int max_hour = jsonLogged.getInt(0);
                     for(int i = 1; i < jsonLogged.length(); i++){
                         max_hour = Math.max(max_hour,jsonLogged.getInt(i));
                     }
-                    for(int i = 0; i < jsonLogged.length(); i++){
-                        int height = (int) Math.ceil(max_height*jsonLogged.getInt(i)/max_hour);
-                        LinearLayout ll = (LinearLayout) getLayoutInflater().inflate(R.layout.list_item_log, null);
+                    if(max_hour > 0) {
+                        for (int i = 0; i < jsonLogged.length(); i++) {
+                            int height = (int) Math.ceil(max_height * jsonLogged.getInt(i) / max_hour);
+                            LinearLayout ll = (LinearLayout) getLayoutInflater().inflate(R.layout.list_item_log, null);
 
-                        ImageView iv = (ImageView) ll.findViewById(R.id.min_cell);
-                        iv.getLayoutParams().height = height;
-                        iv.getLayoutParams().width = hll.getWidth()/24;
-                        TextView tv = (TextView) ll.findViewById(R.id.hour_no);
-                        tv.setText(i+"");
-                        if(hour == i)
-                            tv.setBackgroundColor(0xFFFFFF33);
-                        ImageView sv = (ImageView) ll.findViewById(R.id.space_cell);
-                        sv.getLayoutParams().height = 100-height;
-                        hll.addView(ll);
+                            ImageView iv = (ImageView) ll.findViewById(R.id.min_cell);
+                            iv.getLayoutParams().height = height;
+                            iv.getLayoutParams().width = hll.getWidth() / 24;
+                            TextView tv = (TextView) ll.findViewById(R.id.hour_no);
+                            tv.setText(i + "");
+                            if (hour == i)
+                                tv.setBackgroundColor(0xFFFFFF33);
+                            ImageView sv = (ImageView) ll.findViewById(R.id.space_cell);
+                            sv.getLayoutParams().height = 100 - height;
+                            hll.addView(ll);
+                        }
                     }
 
                 } catch (JSONException e) {
@@ -482,5 +510,31 @@ public class ActivityProfile extends ActionBarActivity {
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+
+    private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
+        ImageView bmImage;
+
+        public DownloadImageTask(ImageView bmImage) {
+            this.bmImage = bmImage;
+        }
+
+        protected Bitmap doInBackground(String... urls) {
+            String urldisplay = urls[0];
+            Bitmap mIcon11 = null;
+            try {
+                InputStream in = new java.net.URL(urldisplay).openStream();
+                mIcon11 = BitmapFactory.decodeStream(in);
+            } catch (Exception e) {
+                Log.e("Error", e.getMessage());
+                e.printStackTrace();
+            }
+            return mIcon11;
+        }
+
+        protected void onPostExecute(Bitmap result) {
+            bmImage.setImageBitmap(result);
+        }
     }
 }

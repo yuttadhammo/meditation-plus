@@ -20,6 +20,12 @@
             />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/alarm_prefs">
+        <CheckBoxPreference
+            android:title="@string/set_alarm"
+            android:summary="@string/set_alarm_desc"
+            android:key="set_alarm"
+            android:defaultValue="true"
+            />
         <ListPreference
             android:title="@string/alarm_tone"
             android:summary="@string/none"

@@ -20,6 +20,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.preference.PreferenceManager;
 import android.text.Html;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -40,6 +41,7 @@ import android.widget.TextView;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -50,33 +52,41 @@ public class AdapterChat extends ArrayAdapter<JSONObject> {
 
     private final List<JSONObject> values;
     private final ActivityMain context;
+    private final ArrayList<String> users;
+    private final String loggedUser;
 
     private String TAG = "AdapterChat";
 
     public AdapterChat(ActivityMain _context, int resource, List<JSONObject> items) {
         super(_context, resource, items);
         this.values = items;
-        context = _context;
-    }
 
-    private Html.ImageGetter imgGetter = new Html.ImageGetter() {
-        @Override
-        public Drawable getDrawable(String source) {
-            int id;
-            id = context.getResources().getIdentifier(source,"drawable",context.getPackageName());
+        users = new ArrayList<String>();
 
-            Drawable d = context.getResources().getDrawable(id);
-            d.setBounds(0,0,42,42);
-            return d;
+        for(JSONObject i : items) {
+            try{
+                users.add(i.getString("username"));
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-    };
+
+        context = _context;
+        loggedUser = PreferenceManager.getDefaultSharedPreferences(context).getString("username",null);
+    }
 
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
 
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View rowView;
 
-        View rowView = inflater.inflate(R.layout.list_item_chat, parent, false);
+        if (convertView == null) {
+            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            rowView = inflater.inflate(R.layout.list_item_chat, parent, false);
+        } else {
+            rowView = convertView;
+        }
 
         JSONObject p = values.get(position);
         try {
@@ -106,37 +116,33 @@ public class AdapterChat extends ArrayAdapter<JSONObject> {
 
                 final String username = p.getString("username");
 
-                String message = Utils.replaceSmilies(context, p.getString("message"));
+                String messageString = p.getString("message");
 
-                Spannable user = new SpannableString(username+": ");
+                SpannableString messageSpan = Utils.replaceSmilies(context, messageString, intColor);
 
-                user.setSpan(new StyleSpan(Typeface.BOLD), 0, user.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                if(messageString.contains("@"+loggedUser)) {
+                    int index = messageString.indexOf("@"+loggedUser);
+                    messageSpan.setSpan(new StyleSpan(Typeface.BOLD), index, index+loggedUser.length()+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    messageSpan.setSpan(new ForegroundColorSpan(Color.parseColor("#" + hexTransparency + "990000")), index, index+loggedUser.length()+1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }
 
-                ClickableSpan span = new ClickableSpan() {
-
-                    @Override
-                    public void onClick(View widget) {
-                        context.showProfile(username);
+                for(String user : users) {
+                    if(!user.equals(loggedUser) && messageString.contains("@"+user)) {
+                        int index = messageString.indexOf("@" + user);
+                        messageSpan = Utils.createProfileSpan(context, index, index+user.length()+1, user, messageSpan);
+                        messageSpan.setSpan(new ForegroundColorSpan(Color.parseColor("#" + hexTransparency + "009900")), index, index+user.length() + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                     }
+                }
 
-                };
-                user.setSpan(span, 0, user.length(),Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-                user.setSpan(new UnderlineSpan() {
-                    public void updateDrawState(TextPaint tp) {
-                        tp.setUnderlineText(false);
-                    }
-                }, 0, user.length(), 0);
+                Spannable userSpan = Utils.createProfileSpan(context, 0, username.length(), username, new SpannableString(username+": "));
 
                 if(p.getString("me").equals("true"))
-                    user.setSpan(new ForegroundColorSpan(Color.parseColor("#" + hexTransparency + "0000FF")), 0, user.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    userSpan.setSpan(new ForegroundColorSpan(Color.parseColor("#" + hexTransparency + "0000FF")), 0, userSpan.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                 else
-                    user.setSpan(new ForegroundColorSpan(Color.parseColor("#" + hexTransparency + "000000")), 0, user.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    userSpan.setSpan(new ForegroundColorSpan(Color.parseColor("#" + hexTransparency + "000000")), 0, userSpan.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
 
-                Spanned html = Html.fromHtml(message,imgGetter,null);
-
-                CharSequence full = TextUtils.concat(user,html);
+                CharSequence full = TextUtils.concat(userSpan,messageSpan);
 
                 mess.setTextColor(transparency);
                 mess.setText(full);
