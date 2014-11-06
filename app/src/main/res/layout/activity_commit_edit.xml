@@ -21,7 +21,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/title_field"
-            android:inputType="text"
+            android:inputType="textCapWords"
             android:singleLine="true"
             />
         <TextView

@@ -26,6 +26,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -987,6 +988,14 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
 
         if(newChatNo > 0) {
             if(currentPosition != 1) {
+                final MediaPlayer mp = MediaPlayer.create(getApplicationContext(), R.raw.tick);
+                mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mediaPlayer) {
+                        mp.release();
+                    }
+                });
+                mp.start();
                 newChats = true;
                 ActionBar actionBar = getSupportActionBar();
                 if (lastChatTime != -1 && actionBar.getTabAt(1) != null)

@@ -97,7 +97,7 @@ public class AdapterChat extends ArrayAdapter<JSONObject> {
             int ela = now - then;
             int day = 60*60*24;
             ela = ela > day ? day : ela;
-            int intColor = 255 - Math.round(ela*255/day);
+            int intColor = 255 - Math.round((float)ela*255/day);
             intColor = intColor > 100 ? intColor : 100;
             String hexTransparency = Integer.toHexString(intColor);
             hexTransparency = hexTransparency.length() > 1 ? hexTransparency : "0"+hexTransparency;
@@ -111,6 +111,7 @@ public class AdapterChat extends ArrayAdapter<JSONObject> {
                 time.setText(ts);
                 time.setTextColor(transparency);
             }
+
             TextView mess = (TextView) rowView.findViewById(R.id.message);
             if (mess != null) {
 

@@ -372,17 +372,22 @@ public class ActivityCommit extends ActionBarActivity {
 
         // checks
 
-        if(title.length() == 0 || title.length() > 20) {
-            Toast.makeText(this, R.string.invalid_title, Toast.LENGTH_SHORT).show();
+        if(title.length() == 0) {
+            Toast.makeText(this, R.string.missing_title, Toast.LENGTH_SHORT).show();
             return;
+        }
+        if(title.length() > 20) {
+            Toast.makeText(this, R.string.long_title, Toast.LENGTH_SHORT).show();
         }
         if(desc.length() > 200) {
-            Toast.makeText(this, R.string.invalid_desc, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.long_desc, Toast.LENGTH_SHORT).show();
             return;
         }
-        if(type.equals("total") && length.length() == 0 || length.matches("[^0-9]")) {
-            Toast.makeText(this, R.string.invalid_amount, Toast.LENGTH_SHORT).show();
-            return;
+        if(type.equals("total")) {
+            if(length.length() == 0 || length.matches("[^0-9]")) {
+                Toast.makeText(this, R.string.invalid_amount, Toast.LENGTH_SHORT).show();
+                return;
+            }
         }
         else {
             if(walking.length() == 0 || walking.matches("[^0-9]") || walking.length() > 2) {

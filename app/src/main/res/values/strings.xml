@@ -109,11 +109,12 @@
     <string name="invalid_sitting">Invalid sitting entry</string>
     <string name="invalid_doy">Invalid day of year entry</string>
     <string name="invalid_dom">Invalid day of month entry</string>
-    <string name="invalid_title">Invalid title entry</string>
-    <string name="invalid_desc">Invalid description entry</string>
+    <string name="missing_title">Title entry required</string>
+    <string name="long_desc">Description too long (200 char max)</string>
     <string name="set_alarm">Set Alarm</string>
     <string name="set_alarm_desc">Create notifications for the end of walking and sitting</string>
     <string name="avatar">Avatar URL</string>
     <string name="avatar_desc">if empty, will use email to determine a gravatar from www.gravatar.com</string>
+    <string name="long_title">TItle entry too long (20 char max)</string>
 
 </resources>
