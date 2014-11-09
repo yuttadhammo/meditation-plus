@@ -116,5 +116,7 @@
     <string name="avatar">Avatar URL</string>
     <string name="avatar_desc">if empty, will use email to determine a gravatar from www.gravatar.com</string>
     <string name="long_title">TItle entry too long (20 char max)</string>
+    <string name="alarm_led_color">LED Colour</string>
+    <string name="alarm_led_color_desc">Use HTML color codes (e.g. #FFFFFF for white)</string>
 
 </resources>

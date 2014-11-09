@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
+import android.preference.EditTextPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
@@ -205,13 +206,19 @@ public class ActivityPrefs extends PreferenceActivity {
         final CheckBoxPreference alarm = (CheckBoxPreference) findPreference("set_alarm");
         final CheckBoxPreference vibrate = (CheckBoxPreference) findPreference("alarm_vibrate");
         final CheckBoxPreference led = (CheckBoxPreference) findPreference("alarm_led");
+        final EditTextPreference ledc = (EditTextPreference) findPreference("alarm_led_color");
+
         if(!alarm.isChecked()) {
             tone.setEnabled(false);
             play.setEnabled(false);
             vibrate.setEnabled(false);
             led.setEnabled(false);
+            ledc.setEnabled(false);
         }
-            
+
+        if(!led.isChecked())
+            ledc.setEnabled(false);
+
         alarm.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object o) {
@@ -220,13 +227,31 @@ public class ActivityPrefs extends PreferenceActivity {
                     play.setEnabled(true);
                     vibrate.setEnabled(true);
                     led.setEnabled(true);
+
+                    if(led.isChecked())
+                        ledc.setEnabled(true);
+                    else
+                        ledc.setEnabled(false);
                 }
                 else {
                     tone.setEnabled(false);
                     play.setEnabled(false);
                     vibrate.setEnabled(false);
                     led.setEnabled(false);
+                    ledc.setEnabled(false);
                 }
+
+                return true;
+            }
+        });
+
+        led.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object o) {
+                if((Boolean) o)
+                    ledc.setEnabled(true);
+                else
+                    ledc.setEnabled(false);
 
                 return true;
             }

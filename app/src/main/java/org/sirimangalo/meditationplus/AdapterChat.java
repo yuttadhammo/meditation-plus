@@ -119,6 +119,8 @@ public class AdapterChat extends ArrayAdapter<JSONObject> {
 
                 String messageString = p.getString("message");
 
+                messageString = Html.fromHtml(messageString).toString();
+
                 SpannableString messageSpan = Utils.replaceSmilies(context, messageString, intColor);
 
                 if(messageString.contains("@"+loggedUser)) {

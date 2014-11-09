@@ -987,7 +987,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
 
 
         if(newChatNo > 0) {
-            if(currentPosition != 1) {
+            if(currentPosition != 1 && lastChatTime != -1) {
                 final MediaPlayer mp = MediaPlayer.create(getApplicationContext(), R.raw.tick);
                 mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                     @Override
@@ -998,7 +998,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                 mp.start();
                 newChats = true;
                 ActionBar actionBar = getSupportActionBar();
-                if (lastChatTime != -1 && actionBar.getTabAt(1) != null)
+                if (actionBar.getTabAt(1) != null)
                     actionBar.getTabAt(1).setText(Html.fromHtml(getString(R.string.title_section2).toUpperCase(Locale.getDefault()) + " (" + newChatNo + ")"));
             }
         }

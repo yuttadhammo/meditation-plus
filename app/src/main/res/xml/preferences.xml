@@ -47,5 +47,11 @@
             android:summary="@string/alarm_led_desc"
             android:key="alarm_led"
             />
+        <EditTextPreference
+            android:title="@string/alarm_led_color"
+            android:summary="@string/alarm_led_color_desc"
+            android:key="alarm_led_color"
+            android:defaultValue="#FFFFFF"
+            />
     </PreferenceCategory>
 </PreferenceScreen>

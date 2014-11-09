@@ -24,6 +24,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.preference.PreferenceManager;
@@ -108,10 +109,21 @@ public class ReceiverAlarm extends BroadcastReceiver {
         if(vibrate){
             mBuilder.setDefaults(Notification.DEFAULT_VIBRATE);
         }
-
         // Have a light
         if(led){
-            mBuilder.setLights(0xffffffff, 300, 1000);
+
+            String colorString = prefs.getString("alarm_led_color","#FFFFFF");
+
+            int color = 0xffffffff;
+
+            try {
+                color = Color.parseColor(colorString);
+            }
+            catch(Exception e) {
+
+            }
+
+            mBuilder.setLights(color, 300, 1000);
         }
 
         mBuilder.setAutoCancel(true);
