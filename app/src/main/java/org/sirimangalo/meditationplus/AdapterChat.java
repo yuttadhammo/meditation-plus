@@ -32,6 +32,7 @@ import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
 import android.text.style.UnderlineSpan;
+import android.text.util.Linkify;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -150,10 +151,10 @@ public class AdapterChat extends ArrayAdapter<JSONObject> {
                 mess.setTextColor(transparency);
                 mess.setText(full);
                 mess.setMovementMethod(LinkMovementMethod.getInstance());
-
+                Linkify.addLinks(mess, Linkify.ALL);
+                mess.setTag(p.getString("cid"));
             }
 
-            mess.setTag(p.getString("cid"));
 
         } catch (JSONException e) {
             e.printStackTrace();

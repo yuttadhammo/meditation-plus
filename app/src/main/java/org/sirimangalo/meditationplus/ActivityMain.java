@@ -26,11 +26,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
+import android.os.ResultReceiver;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -49,6 +51,7 @@ import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.ImageSpan;
 import android.text.style.StyleSpan;
 import android.text.style.UnderlineSpan;
 import android.util.Log;
@@ -164,6 +167,8 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
     public static ArrayList<Boolean> openCommitments = new ArrayList<Boolean>();
     private ShareActionProvider mShareActionProvider;
 
+    MyResultReceiver resultReceiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -186,6 +191,8 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         setContentView(R.layout.activity_main);
 
         onlineList = (TextView) findViewById(R.id.online);
+
+        resultReceiver = new MyResultReceiver(null);
 
         // loading dialog
         loadingDialog = new ProgressDialog(this);
@@ -587,6 +594,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
     public void doPostTask(ArrayList<NameValuePair> nvp) {
 
         nvp.add(new BasicNameValuePair("username", username));
+        nvp.add(new BasicNameValuePair("source", "android"));
         postTask.doPostTask(nvp);
     }
 
@@ -728,6 +736,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         }
     }
 
+    private ServiceMediaPlayer mPlayerService;
     Handler postHandler = new Handler() {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
@@ -780,6 +789,39 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                     if(json.get("admin") instanceof String)
                         isAdmin = json.getString("admin").equals("true");
                 }
+                if(json.has("live")) {
+
+                    View liveShell = findViewById(R.id.live_feed_shell);
+
+                    if(!json.get("live").equals("false")) {
+                        final String url =  json.getString("live");
+
+                        // check service and update text
+
+                        Intent i = new Intent(context, ServiceMediaPlayer.class);
+                        i.setAction(ServiceMediaPlayer.ACTION_CHECK);
+                        i.putExtra("receiver", resultReceiver);
+                        startService(i);
+
+                        liveShell.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                Intent i = new Intent(context, ServiceMediaPlayer.class);
+                                i.setAction(ServiceMediaPlayer.ACTION_PLAY);
+                                i.putExtra("live_url", url);
+                                i.putExtra("receiver", resultReceiver);
+                                startService(i);
+                            }
+                        });
+                        liveShell.setVisibility(View.VISIBLE);
+                    }
+                    else {
+                        Intent i = new Intent(context, ServiceMediaPlayer.class);
+                        stopService(i);
+                        liveShell.setVisibility(View.GONE);
+                    }
+
+                }
                 if(json.has("chat")) {
                     if(json.get("chat") instanceof JSONArray)
                         jsonChats = json.getJSONArray("chat");
@@ -815,7 +857,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                     }
                 }
                 if(json.has("logged")) {
-                    populateOnline(json.getJSONArray("logged"));
+                    populateOnline(json.getJSONArray("loggedin"));
 
                 }
                 if(json.has("login_token")) {
@@ -893,6 +935,29 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
             }
         }
     };
+
+    class MyResultReceiver extends ResultReceiver
+    {
+        public MyResultReceiver(Handler handler) {
+            super(handler);
+        }
+
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+
+            TextView liveView = (TextView) findViewById(R.id.live_feed);
+
+            if(resultCode == 100) {
+                liveView.setText(R.string.live_available);
+            }
+            else if(resultCode == 200){
+                liveView.setText(R.string.live_connecting);
+            }
+            else{
+                liveView.setText(R.string.live_playing);
+            }
+        }
+    }
 
     private void populateLog(JSONArray jsonLogged) {
         Calendar utc = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
@@ -1110,13 +1175,16 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
 
         onlineList.setVisibility(View.VISIBLE);
 
-        ArrayList<String> onlineArray = new ArrayList<String>();
+        ArrayList<JSONObject> onlineArray = new ArrayList<JSONObject>();
+        ArrayList<String> onlineNamesArray = new ArrayList<String>();
 
         // collect into array
 
         for(int i = 0; i < onlines.length(); i++) {
             try {
-                onlineArray.add(onlines.getString(i).replaceFirst("\\^.*", ""));
+                JSONObject a = onlines.getJSONObject(i);
+                onlineArray.add(a);
+                onlineNamesArray.add(a.getString("username"));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -1128,13 +1196,17 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
 
         int pos = text.length(); // start after "Online: "
 
-        text += TextUtils.join(", ", onlineArray);
+        text += TextUtils.join(", ", onlineNamesArray);
         Spannable span = new SpannableString(text);
 
         span.setSpan(new StyleSpan(Typeface.BOLD), 0, pos, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE); // bold the "Online: "
 
-        for(final String oneOn : onlineArray) {
+        Drawable android = context.getResources().getDrawable(R.drawable.android);
+        android.setBounds(0, 0, 48,32);
+
+        for(JSONObject oneOnA : onlineArray) {
             try {
+                final String oneOn = oneOnA.getString("username");
 
                 int end = pos+oneOn.length();
 
@@ -1145,6 +1217,11 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                     String username = user.getString("username");
                     if(username.equals(oneOn))
                         isMed = true;
+                }
+
+                if(oneOnA.getString("source").equals("android")) {
+                    ImageSpan image = new ImageSpan(android, ImageSpan.ALIGN_BASELINE);
+                    span.setSpan(image, pos-1, pos, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
                 }
 
                 ClickableSpan clickable = new ClickableSpan() {

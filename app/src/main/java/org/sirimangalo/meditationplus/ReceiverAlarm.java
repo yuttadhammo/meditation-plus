@@ -91,7 +91,7 @@ public class ReceiverAlarm extends BroadcastReceiver {
         else if (notificationUri.equals("tts")) {
             notificationUri = "";
             final String ttsString = prefs.getString("tts_string",desc);
-            Intent ttsIntent = new Intent(context,TTSService.class);
+            Intent ttsIntent = new Intent(context,ServiceTTS.class);
             ttsIntent.putExtra("spoken_text", ttsString);
             context.startService(ttsIntent);
         }

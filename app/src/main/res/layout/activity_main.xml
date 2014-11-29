@@ -33,13 +33,46 @@
         android:orientation="vertical"
         >
         <TextView
-            android:text="@string/online"
+            android:text=""
             android:id="@+id/coming_commit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="6dp"
             android:background="#FFFFFFDD"
             />
+        <ImageView
+            android:layout_height="1dp"
+            android:layout_width="match_parent"
+            android:background="@color/separator"
+            />
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/live_feed_shell"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:orientation="vertical"
+        >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#FFDDFFDD"
+            android:orientation="horizontal">
+            <ImageView
+                android:layout_marginLeft="4dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/speaker"
+                android:layout_gravity="center_vertical"
+                />
+            <TextView
+                android:text="@string/live_available"
+                android:id="@+id/live_feed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="6dp"
+                />
+        </LinearLayout>
         <ImageView
             android:layout_height="1dp"
             android:layout_width="match_parent"

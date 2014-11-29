@@ -15,7 +15,7 @@ import android.os.IBinder;
 public class ScheduleClient {
 
     // The hook into our service
-    private ScheduleService mBoundService;
+    private ServiceSchedule mBoundService;
     // The context to start the service in
     private Context mContext;
     // A flag if we are connected to the service or not
@@ -30,7 +30,7 @@ public class ScheduleClient {
      */
     public void doBindService() {
         // Establish a connection with our service
-        mContext.bindService(new Intent(mContext, ScheduleService.class), mConnection, Context.BIND_AUTO_CREATE);
+        mContext.bindService(new Intent(mContext, ServiceSchedule.class), mConnection, Context.BIND_AUTO_CREATE);
         mIsBound = true;
     }
 
@@ -42,7 +42,7 @@ public class ScheduleClient {
         public void onServiceConnected(ComponentName className, IBinder service) {
             // This is called when the connection with our service has been established,
             // giving us the service object we can use to interact with our service.
-            mBoundService = ((ScheduleService.ServiceBinder) service).getService();
+            mBoundService = ((ServiceSchedule.ServiceBinder) service).getService();
         }
 
         public void onServiceDisconnected(ComponentName className) {

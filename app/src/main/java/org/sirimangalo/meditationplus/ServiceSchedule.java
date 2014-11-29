@@ -7,14 +7,14 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
-public class ScheduleService extends Service {
+public class ServiceSchedule extends Service {
 
     /**
      * Class for clients to access
      */
     public class ServiceBinder extends Binder {
-        ScheduleService getService() {
-            return ScheduleService.this;
+        ServiceSchedule getService() {
+            return ServiceSchedule.this;
         }
     }
 

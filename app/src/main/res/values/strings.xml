@@ -118,5 +118,10 @@
     <string name="long_title">TItle entry too long (20 char max)</string>
     <string name="alarm_led_color">LED Colour</string>
     <string name="alarm_led_color_desc">Use HTML color codes (e.g. #FFFFFF for white)</string>
+    <string name="playing_live">Live feed now playing...</string>
+    <string name="live_available">Live feed available (click to play)</string>
+    <string name="live_playing">Live feed playing (click to stop)</string>
+    <string name="live_connecting">Live feed connecting... (click to cancel)</string>
+    <string name="stop">Stop</string>
 
 </resources>

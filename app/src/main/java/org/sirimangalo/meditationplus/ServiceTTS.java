@@ -13,7 +13,7 @@ import java.util.Locale;
 /**
  * Created by noah on 10/6/14.
  */
-public class TTSService extends Service implements TextToSpeech.OnInitListener {
+public class ServiceTTS extends Service implements TextToSpeech.OnInitListener {
     private TextToSpeech mTts;
     private String spokenText;
 
