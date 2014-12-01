@@ -64,7 +64,7 @@
                 android:layout_height="24dp"
                 android:gravity="center"
                 android:textStyle="bold"
-                android:textColor="#FF009900"
+                android:textColor="#FF00BB00"
                 />
             <ImageView
                 android:id="@+id/right_hand"

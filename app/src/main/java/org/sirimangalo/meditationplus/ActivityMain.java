@@ -142,9 +142,11 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
     private CountDownTimer ct;
     private boolean restartTimer;
     private int currentPosition;
-    private int lastChatTime = -1;
+    private int lastChatTime = 0;
     private boolean newChats = false;
     private boolean firstPage = true;
+
+    ArrayList<JSONObject> lastChatArray = new ArrayList<JSONObject>();
 
     public boolean isAdmin = false;
     private PostTaskRunner postTask;
@@ -573,6 +575,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         nvp.add(new BasicNameValuePair("login_token", loginToken));
         nvp.add(new BasicNameValuePair("list_version", listVersion+""));
         nvp.add(new BasicNameValuePair("chat_version", chatVersion+""));
+        nvp.add(new BasicNameValuePair("last_chat", lastChatTime+""));
         nvp.add(new BasicNameValuePair("submit", "Refresh"));
 
         if(formId == null)
@@ -1008,6 +1011,13 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
 
         int latestChatTime = 0;
         ArrayList<JSONObject> chatArray = new ArrayList<JSONObject>();
+
+        if(chats.length() < lastChatArray.size()) { // prepend old chats
+            for(int i = chats.length(); i < lastChatArray.size(); i++) {
+                chatArray.add(lastChatArray.get(i));
+            }
+        }
+
         for(int i = 0; i < chats.length(); i++) {
             try {
                 JSONObject chat = chats.getJSONObject(i);
@@ -1020,6 +1030,8 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                 e.printStackTrace();
             }
         }
+
+        lastChatArray = chatArray;
 
         if(latestChatTime < lastChatTime)
             newChatNo = -1;
@@ -1052,7 +1064,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
 
 
         if(newChatNo > 0) {
-            if(currentPosition != 1 && lastChatTime != -1) {
+            if(currentPosition != 1 && lastChatTime > 0) {
                 final MediaPlayer mp = MediaPlayer.create(getApplicationContext(), R.raw.tick);
                 mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                     @Override
