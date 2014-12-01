@@ -17,7 +17,10 @@
 package org.sirimangalo.meditationplus;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,8 +29,11 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,15 +45,17 @@ public class AdapterMed extends ArrayAdapter<JSONObject> {
 
     private final List<JSONObject> values;
     private final ActivityMain context;
+    private final Handler postHandler;
 
     private double MAX_AGE = 60*60*1.5; // 1.5 hour
 
     private String TAG = "AdapterMed";
 
-    public AdapterMed(ActivityMain _context, int resource, List<JSONObject> items) {
+    public AdapterMed(ActivityMain _context, int resource, List<JSONObject> items, Handler _postHandler) {
         super(_context, resource, items);
         this.values = items;
         context = _context;
+        postHandler = _postHandler;
     }
 
     @Override
@@ -69,6 +77,9 @@ public class AdapterMed extends ArrayAdapter<JSONObject> {
         ImageView status = (ImageView) rowView.findViewById(R.id.one_status);
         TextView name = (TextView) rowView.findViewById(R.id.one_med);
         ImageView flag = (ImageView) rowView.findViewById(R.id.one_flag);
+
+        View anuView = rowView.findViewById(R.id.anumodana_shell);
+        TextView anuText = (TextView) rowView.findViewById(R.id.anumodana);
 
         try {
             String wo = p.getString("walking");
@@ -153,6 +164,31 @@ public class AdapterMed extends ArrayAdapter<JSONObject> {
             String type = p.getString("type");
             if("love".equals(type))
                 status.setImageResource(R.drawable.love_icon);
+
+            String anu = p.getString("anumodana");
+            if(!anu.equals("0"))
+                anuText.setText(anu);
+
+            final String sid = p.getString("sid");
+
+            anuView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Log.d(TAG, "anu clicked");
+                    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+                    String loggedUsername = prefs.getString("username", "");
+                    String loginToken = prefs.getString("login_token", "");
+                    ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
+                    nvp.add(new BasicNameValuePair("form_id", "anumed_" + sid));
+                    nvp.add(new BasicNameValuePair("login_token", loginToken));
+                    nvp.add(new BasicNameValuePair("submit", "Refresh"));
+                    nvp.add(new BasicNameValuePair("username", loggedUsername));
+                    nvp.add(new BasicNameValuePair("source", "android"));
+                    PostTaskRunner postTask = new PostTaskRunner(postHandler, context);
+                    postTask.doPostTask(nvp);
+
+                }
+            });
 
         } catch (Exception e) {
             e.printStackTrace();

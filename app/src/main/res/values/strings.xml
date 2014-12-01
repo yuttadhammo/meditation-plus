@@ -123,5 +123,10 @@
     <string name="live_playing">Live feed playing (click to stop)</string>
     <string name="live_connecting">Live feed connecting... (click to cancel)</string>
     <string name="stop">Stop</string>
+    <string name="anu">+1</string>
+    <string name="sit">Sit</string>
+    <string name="walk">Walk</string>
+    <string name="now">Now</string>
+    <string name="from">From</string>
 
 </resources>

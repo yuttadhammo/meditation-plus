@@ -47,5 +47,31 @@
             android:paddingLeft="@dimen/med_cell_padding"
             android:paddingRight="@dimen/med_cell_padding"
             />
+        <LinearLayout
+            android:layout_width="@dimen/med_head_width"
+            android:layout_height="24dp"
+            android:id="@+id/anumodana_shell"
+            android:gravity="center">
+            <ImageView
+                android:id="@+id/left_hand"
+                android:layout_width="12dp"
+                android:layout_height="24dp"
+                android:src="@drawable/left_hand"
+                />
+            <TextView
+                android:id="@+id/anumodana"
+                android:layout_width="wrap_content"
+                android:layout_height="24dp"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textColor="#FF009900"
+                />
+            <ImageView
+                android:id="@+id/right_hand"
+                android:layout_width="12dp"
+                android:layout_height="24dp"
+                android:src="@drawable/right_hand"
+                />
+        </LinearLayout>
     </LinearLayout>
 </RelativeLayout>

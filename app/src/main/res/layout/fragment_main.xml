@@ -24,7 +24,7 @@
         >
         <TextView
             android:id="@+id/walk_head"
-            android:text="@string/walking"
+            android:text="@string/walk"
             android:layout_width="@dimen/med_head_width"
             android:layout_height="wrap_content"
             android:gravity="center"
@@ -32,7 +32,7 @@
             />
         <TextView
             android:id="@+id/sit_head"
-            android:text="@string/sitting"
+            android:text="@string/sit"
             android:layout_width="@dimen/med_head_width"
             android:layout_height="wrap_content"
             android:padding="@dimen/med_cell_padding"
@@ -41,7 +41,7 @@
             />
         <TextView
             android:id="@+id/status_head"
-            android:text="@string/status"
+            android:text="@string/now"
             android:layout_width="@dimen/med_head_width"
             android:layout_height="match_parent"
             android:padding="@dimen/med_cell_padding"
@@ -50,7 +50,7 @@
             />
         <TextView
             android:id="@+id/name_head"
-            android:text="@string/username"
+            android:text="@string/name"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
@@ -60,7 +60,16 @@
             />
         <TextView
             android:id="@+id/country_head"
-            android:text="@string/country"
+            android:text="@string/from"
+            android:layout_width="@dimen/med_head_width"
+            android:layout_height="match_parent"
+            android:padding="@dimen/med_cell_padding"
+            android:gravity="center"
+            android:textStyle="bold"
+            />
+        <TextView
+            android:id="@+id/anu_head"
+            android:text="@string/anu"
             android:layout_width="@dimen/med_head_width"
             android:layout_height="match_parent"
             android:padding="@dimen/med_cell_padding"

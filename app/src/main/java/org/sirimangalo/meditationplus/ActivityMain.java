@@ -1113,7 +1113,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         TextView emptyText = (TextView)findViewById(android.R.id.empty);
         medList.setEmptyView(emptyText);
 
-        AdapterMed adapter = new AdapterMed(this, R.layout.list_item_med, medArray);
+        AdapterMed adapter = new AdapterMed(this, R.layout.list_item_med, medArray, postHandler);
         medList.setAdapter(adapter);
     }
 
