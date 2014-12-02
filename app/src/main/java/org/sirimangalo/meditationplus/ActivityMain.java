@@ -170,6 +170,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
     private ShareActionProvider mShareActionProvider;
 
     MyResultReceiver resultReceiver;
+    private boolean doChatScroll = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -419,6 +420,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                 }
                 nvp.add(new BasicNameValuePair("message", messageT));
                 doSubmit("chatform", nvp, true);
+                doChatScroll = true;
                 break;
             case R.id.med_send:
                 int w = walkingPicker.getValue();
@@ -1057,8 +1059,10 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
 
         // restore index and position
 
-        if(newChatNo != 0)
+        if(doChatScroll) {
             chatList.setSelection(adapter.getCount() - 1);
+            doChatScroll = false;
+        }
         else
             chatList.setSelectionFromTop(index, top);
 

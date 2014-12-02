@@ -19,6 +19,7 @@ package org.sirimangalo.meditationplus;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -168,6 +169,11 @@ public class AdapterMed extends ArrayAdapter<JSONObject> {
             String anu = p.getString("anumodana");
             if(!anu.equals("0"))
                 anuText.setText(anu);
+
+            if(p.getString("anu_me").equals("1")) {
+                anuText.setTextColor(0xFF00BB00);
+                anuText.setTypeface(null, Typeface.BOLD);
+            }
 
             final String sid = p.getString("sid");
 
