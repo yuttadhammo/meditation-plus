@@ -151,9 +151,6 @@ public class ActivityProfile extends ActionBarActivity {
         Intent i;
 
         switch(id) {
-            case R.id.action_logout:
-                doLogout();
-                return true;
             case R.id.action_htm:
                 Utils.openHTM(this);
                 return true;

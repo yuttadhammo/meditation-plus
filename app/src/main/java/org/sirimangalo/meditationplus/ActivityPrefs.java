@@ -14,6 +14,8 @@ import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.ListPreference;
@@ -51,6 +53,9 @@ public class ActivityPrefs extends PreferenceActivity {
 
     private ActivityPrefs context;
     private SharedPreferences prefs;
+
+    private PostTaskRunner postTask;
+    private Preference logout;
 
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     @Override
@@ -257,6 +262,23 @@ public class ActivityPrefs extends PreferenceActivity {
             }
         });
 
+        logout = findPreference("logout");
+
+        if(prefs.getString("login_token","").equals("")) {
+            logout.setEnabled(false);
+        }
+        else {
+            logout.setEnabled(true);
+            logout.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+
+                    doLogout();
+                    return true;
+                }
+            });
+        }
+
     }
 
     @Override
@@ -318,6 +340,15 @@ public class ActivityPrefs extends PreferenceActivity {
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
 
         super.onResume();
+    }
+
+    private void doLogout() {
+
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.remove("login_token");
+        editor.apply();
+
+        logout.setEnabled(false);
     }
 
     @Override

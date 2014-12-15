@@ -31,7 +31,7 @@
     <string name="uncommit">Uncommit</string>
     <string name="edit">Edit</string>
     <string name="delete">Delete</string>
-    <string name="action_logout">Logout</string>
+    <string name="logout">Logout</string>
     <string name="smily">:)</string>
     <string name="registered">Registered successfully!</string>
     <string name="name">Name</string>
@@ -128,5 +128,7 @@
     <string name="walk">Walk</string>
     <string name="now">Now</string>
     <string name="from">From</string>
+    <string name="logout_desc">Click to log the current user out of the system</string>
+    <string name="action_schedule">Schedule</string>
 
 </resources>

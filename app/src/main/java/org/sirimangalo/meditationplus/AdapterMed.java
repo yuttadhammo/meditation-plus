@@ -48,7 +48,7 @@ public class AdapterMed extends ArrayAdapter<JSONObject> {
     private final ActivityMain context;
     private final Handler postHandler;
 
-    private double MAX_AGE = 60*60*1.5; // 1.5 hour
+    private double MAX_AGE = 60*60*3; // 3 hours
 
     private String TAG = "AdapterMed";
 

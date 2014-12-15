@@ -171,6 +171,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
 
     MyResultReceiver resultReceiver;
     private boolean doChatScroll = true;
+    private boolean doingLogin = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -298,11 +299,19 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
             }
         };
         loginToken = prefs.getString("login_token","");
-        if(!loginToken.equals("")) {
+
+        if(loginToken.equals("")) {
+            Intent i = new Intent(this,ActivityMain.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            if(!doingLogin)
+                startActivity(i);
+        }
+        else {
             username = prefs.getString("username","");
             password = "";
             doSubmit(null, new ArrayList<NameValuePair>(), false);
         }
+
     }
 
     @Override
@@ -353,8 +362,10 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
             case R.id.action_profile:
                 showProfile(username);
                 return true;
-            case R.id.action_logout:
-                doLogout();
+            case R.id.action_schedule:
+                i = new Intent(this,ActivitySchedule.class);
+                i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(i);
                 return true;
             case R.id.action_settings:
                 i = new Intent(this,ActivityPrefs.class);
@@ -526,6 +537,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
 
 
     private void showLogin() {
+        doingLogin = true;
         Intent i = new Intent(this,ActivityLogin.class);
         i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivityForResult(i, LOGIN_CODE);
@@ -543,20 +555,6 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         doPostTask(nvp);
 
         Log.d(TAG, "Executing: login");
-    }
-
-    private void doLogout() {
-
-        postTask = new PostTaskRunner(postHandler, this); // new session
-
-        username = "";
-        password = "";
-
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.remove("login_token");
-        editor.apply();
-
-        showLogin();
     }
 
     private void doRegister() {
@@ -745,6 +743,8 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
     Handler postHandler = new Handler() {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+
+            doingLogin = false;
 
             showLoading(false);
 
@@ -1289,7 +1289,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                 else if (method.equals("register"))
                     doRegister();
             }
-            else {
+            else if(resultCode == Activity.RESULT_CANCELED) {
                 finish();
             }
         }

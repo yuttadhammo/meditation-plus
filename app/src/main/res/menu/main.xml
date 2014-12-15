@@ -11,6 +11,9 @@
     <item android:id="@+id/action_profile"
         android:title="@string/action_profile"
         app:showAsAction="never" />
+    <item android:id="@+id/action_schedule"
+        android:title="@string/action_schedule"
+        app:showAsAction="never" />
     <item android:id="@+id/action_htm"
         android:title="@string/action_htm"
         app:showAsAction="never" />
@@ -18,9 +21,6 @@
         app:showAsAction="never"
         android:title="@string/share"
         />
-    <item android:id="@+id/action_logout"
-        android:title="@string/action_logout"
-        app:showAsAction="never" />
     <item android:id="@+id/action_settings"
         android:title="@string/action_settings"
         app:showAsAction="never" />

@@ -18,6 +18,11 @@
             android:key="full_refresh_period"
             android:defaultValue="60"
             />
+        <Preference
+            android:title="@string/logout"
+            android:summary="@string/logout_desc"
+            android:key="logout"
+            />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/alarm_prefs">
         <CheckBoxPreference
