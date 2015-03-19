@@ -47,6 +47,27 @@
             />
     </LinearLayout>
     <LinearLayout
+        android:id="@+id/coming_event_shell"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:orientation="vertical"
+        >
+        <TextView
+            android:text=""
+            android:id="@+id/coming_event"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="6dp"
+            android:background="#FFFFFFDD"
+            />
+        <ImageView
+            android:layout_height="1dp"
+            android:layout_width="match_parent"
+            android:background="@color/separator"
+            />
+    </LinearLayout>
+    <LinearLayout
         android:id="@+id/live_feed_shell"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

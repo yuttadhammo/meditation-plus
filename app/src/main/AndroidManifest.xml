@@ -30,6 +30,18 @@
             >
         </activity>
         <activity
+            android:name=".ActivitySchedule"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            >
+        </activity>
+        <activity
+            android:name=".ActivityScheduleEdit"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            >
+        </activity>
+        <activity
             android:name=".ActivityProfile"
             android:label="@string/profile"
             android:configChanges="orientation|screenSize|keyboardHidden"

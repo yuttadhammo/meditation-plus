@@ -173,6 +173,8 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
     private boolean doChatScroll = true;
     private boolean doingLogin = false;
 
+    private TextView comingEvent;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -195,6 +197,16 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         setContentView(R.layout.activity_main);
 
         onlineList = (TextView) findViewById(R.id.online);
+        comingEvent = (TextView)findViewById(R.id.coming_event);
+
+        comingEvent.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(context,ActivitySchedule.class);
+                i.putExtra("admin",isAdmin);
+                startActivity(i);
+            }
+        });
 
         resultReceiver = new MyResultReceiver(null);
 
@@ -364,6 +376,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                 return true;
             case R.id.action_schedule:
                 i = new Intent(this,ActivitySchedule.class);
+                i.putExtra("admin",isAdmin);
                 i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(i);
                 return true;
@@ -881,6 +894,48 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                         return;
                     }
                 }
+                if(json.has("schedule")) {
+                    Calendar utc = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+                    int day = utc.get(Calendar.DAY_OF_MONTH);
+                    int weekday = utc.get(Calendar.DAY_OF_WEEK);
+                    int hour = utc.get(Calendar.HOUR_OF_DAY);
+                    int minute = utc.get(Calendar.MINUTE);
+
+                    int time = hour*60 + minute;
+
+                    JSONArray scheduleJ = json.getJSONArray("schedule");
+
+                    int nextEvent = 60;
+                    String nextEventTitle = "";
+
+                    for(int i = 0; i < scheduleJ.length(); i++) {
+                        try {
+                            JSONObject aSchedule = scheduleJ.getJSONObject(i);
+                            String aTime = aSchedule.getString("time");
+                            int ah = Integer.parseInt(aTime.substring(0, 2));
+                            int am = Integer.parseInt(aTime.substring(2, 4));
+                            int aTimeInt = ah*60+am;
+                            int diff = aTimeInt - time;
+                            if(diff > 0 && diff < nextEvent){
+                                nextEvent = diff;
+                                nextEventTitle = aSchedule.getString("title");
+                            }
+
+                        }
+                        catch(Exception e) {
+
+                        }
+                    }
+
+
+                    if(nextEvent < 60) {
+                        findViewById(R.id.coming_event_shell).setVisibility(View.VISIBLE);
+                        comingEvent.setText(nextEvent > 1 ? String.format(getString(R.string.coming_event), nextEventTitle, nextEvent) : String.format(getString(R.string.coming_event_1), nextEventTitle));
+                    }
+                    else
+                        findViewById(R.id.coming_event_shell).setVisibility(View.GONE);
+                }
+
 
                 // check if upcoming commitments
 

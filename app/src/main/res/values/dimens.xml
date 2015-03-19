@@ -5,6 +5,8 @@
     <dimen name="edit_text_height">40dp</dimen>
     <dimen name="login_form_width">400dp</dimen>
     <dimen name="login_form_height">200dp</dimen>
+    <dimen name="schedule_width">400dp</dimen>
+    <dimen name="schedule_height">800dp</dimen>
     <dimen name="text_padding">5dp</dimen>
     <dimen name="title_size">24sp</dimen>
     <dimen name="subtitle_size">16sp</dimen>

@@ -48,7 +48,7 @@ public class AdapterMed extends ArrayAdapter<JSONObject> {
     private final ActivityMain context;
     private final Handler postHandler;
 
-    private double MAX_AGE = 60*60*3; // 3 hours
+    private double MAX_AGE = 60*60*6; // 3 hours * 2
 
     private String TAG = "AdapterMed";
 
@@ -123,7 +123,7 @@ public class AdapterMed extends ArrayAdapter<JSONObject> {
                 ws = wo;
                 ss = so;
 
-                double age = 1-(now - ei)/MAX_AGE;
+                double age = 1-(now - ei)/(MAX_AGE*1.5);
 
                 String ageColor = Integer.toHexString((int) (255*age));
 
@@ -135,8 +135,10 @@ public class AdapterMed extends ArrayAdapter<JSONObject> {
                 walk.setTextColor(alpha);
                 sit.setTextColor(alpha);
                 name.setTextColor(alpha);
-                status.setAlpha((float)age);
-                flag.setAlpha((float)age);
+                status.setAlpha((float) age);
+                flag.setAlpha((float) age);
+                // anuView.setAlpha((float)age);
+                // anuText.setAlpha((float)age);
 
             }
 
@@ -170,31 +172,34 @@ public class AdapterMed extends ArrayAdapter<JSONObject> {
             if(!anu.equals("0"))
                 anuText.setText(anu);
 
-            if(p.getString("anu_me").equals("1")) {
+            boolean isMe = p.getString("me").equals("true");
+
+            if(p.getString("anu_me").equals("1") || isMe) {
                 anuText.setTextColor(0xFF00BB00);
                 anuText.setTypeface(null, Typeface.BOLD);
             }
+            else {
+                final String sid = p.getString("sid");
 
-            final String sid = p.getString("sid");
+                anuView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Log.d(TAG, "anu clicked");
+                        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+                        String loggedUsername = prefs.getString("username", "");
+                        String loginToken = prefs.getString("login_token", "");
+                        ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
+                        nvp.add(new BasicNameValuePair("form_id", "anumed_" + sid));
+                        nvp.add(new BasicNameValuePair("login_token", loginToken));
+                        nvp.add(new BasicNameValuePair("submit", "Refresh"));
+                        nvp.add(new BasicNameValuePair("username", loggedUsername));
+                        nvp.add(new BasicNameValuePair("source", "android"));
+                        PostTaskRunner postTask = new PostTaskRunner(postHandler, context);
+                        postTask.doPostTask(nvp);
 
-            anuView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Log.d(TAG, "anu clicked");
-                    SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-                    String loggedUsername = prefs.getString("username", "");
-                    String loginToken = prefs.getString("login_token", "");
-                    ArrayList<NameValuePair> nvp = new ArrayList<NameValuePair>();
-                    nvp.add(new BasicNameValuePair("form_id", "anumed_" + sid));
-                    nvp.add(new BasicNameValuePair("login_token", loginToken));
-                    nvp.add(new BasicNameValuePair("submit", "Refresh"));
-                    nvp.add(new BasicNameValuePair("username", loggedUsername));
-                    nvp.add(new BasicNameValuePair("source", "android"));
-                    PostTaskRunner postTask = new PostTaskRunner(postHandler, context);
-                    postTask.doPostTask(nvp);
-
-                }
-            });
+                    }
+                });
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
