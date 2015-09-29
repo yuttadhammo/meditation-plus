@@ -380,6 +380,11 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                 i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(i);
                 return true;
+            case R.id.action_quote:
+                i = new Intent(this,ActivityQuote.class);
+                i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(i);
+                return true;
             case R.id.action_settings:
                 i = new Intent(this,ActivityPrefs.class);
                 i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -438,7 +443,7 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                     Toast.makeText(this,R.string.no_message,Toast.LENGTH_SHORT).show();
                     return;
                 }
-                if(messageT.length() > 140) {
+                if(messageT.length() > 500) {
                     Toast.makeText(this,R.string.message_too_long,Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -840,14 +845,6 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                     }
 
                 }
-                if(json.has("chat")) {
-                    if(json.get("chat") instanceof JSONArray)
-                        jsonChats = json.getJSONArray("chat");
-                    if(jsonChats == null)
-                        chatVersion = -1;
-                    else
-                        populateChat(jsonChats, json.has("admin") && json.getString("admin").equals("true"));
-                }
                 if(json.has("list")) {
                     if(json.get("list") instanceof JSONArray)
                         jsonList = json.getJSONArray("list");
@@ -855,6 +852,14 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
                         listVersion = -1;
                     else
                         populateMeds(jsonList);
+                }
+                if(json.has("chat")) {
+                    if(json.get("chat") instanceof JSONArray)
+                        jsonChats = json.getJSONArray("chat");
+                    if(jsonChats == null)
+                        chatVersion = -1;
+                    else
+                        populateChat(jsonChats, json.has("admin") && json.getString("admin").equals("true"));
                 }
                 if(json.has("hours")) {
                     if(json.get("hours") instanceof JSONArray)
@@ -1088,6 +1093,22 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
             }
         }
 
+        for(int i = 0; i < chatArray.size(); i++) {
+            boolean isMed = false;
+            try {
+                String username = chatArray.get(i).getString("username");
+                for (int j = 0; j < jsonList.length(); j++) {
+                    JSONObject user = jsonList.getJSONObject(j);
+                    String un = user.getString("username");
+                    if (username.equals(un))
+                        isMed = true;
+                }
+                chatArray.get(i).put("isMed", isMed);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
         lastChatArray = chatArray;
 
         if(latestChatTime < lastChatTime)
@@ -1185,7 +1206,21 @@ public class ActivityMain extends ActionBarActivity implements ActionBar.TabList
         medList.setEmptyView(emptyText);
 
         AdapterMed adapter = new AdapterMed(this, R.layout.list_item_med, medArray, postHandler);
+
+        // save index and top position
+
+        int index = medList.getFirstVisiblePosition();
+        View v = medList.getChildAt(0);
+        int top = (v == null) ? 0 : v.getTop();
+
+        // set adapater
+
         medList.setAdapter(adapter);
+
+        // restore index and position
+
+        medList.setSelectionFromTop(index, top);
+
     }
 
     private void populateCommit(JSONArray commitJ) {

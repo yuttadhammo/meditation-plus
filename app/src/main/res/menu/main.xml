@@ -17,6 +17,10 @@
     <item android:id="@+id/action_htm"
         android:title="@string/action_htm"
         app:showAsAction="never" />
+    <item android:id="@+id/action_quote"
+        app:showAsAction="never"
+        android:title="@string/quote"
+        />
     <item android:id="@+id/action_share"
         app:showAsAction="never"
         android:title="@string/share"

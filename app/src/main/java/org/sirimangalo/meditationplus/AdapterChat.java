@@ -30,6 +30,7 @@ import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.ImageSpan;
 import android.text.style.StyleSpan;
 import android.text.style.UnderlineSpan;
 import android.text.util.Linkify;
@@ -122,7 +123,11 @@ public class AdapterChat extends ArrayAdapter<JSONObject> {
 
                 messageString = Html.fromHtml(messageString).toString();
 
+                // smilies
+
                 SpannableString messageSpan = Utils.replaceSmilies(context, messageString, intColor);
+
+                // @references
 
                 if(messageString.contains("@"+loggedUser)) {
                     int index = messageString.indexOf("@"+loggedUser);
@@ -137,6 +142,23 @@ public class AdapterChat extends ArrayAdapter<JSONObject> {
                         messageSpan.setSpan(new ForegroundColorSpan(Color.parseColor("#" + hexTransparency + "009900")), index, index+user.length() + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                     }
                 }
+
+                // Q: image
+
+                if(messageString.indexOf("Q: ") == 0 || messageString.indexOf("q: ") == 0) {
+
+                    boolean isMed = p.getBoolean("isMed");
+
+                    int id = context.getResources().getIdentifier(isMed ? "green_q" : "orange_q", "drawable", context.getPackageName());
+
+                    Drawable d = context.getResources().getDrawable(id);
+                    d.setBounds(0, 0, 42, 42);
+                    d.setAlpha(intColor);
+                    ImageSpan image = new ImageSpan(d, ImageSpan.ALIGN_BASELINE);
+                    messageSpan.setSpan(image, 0, 3, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+                }
+
+                // Username
 
                 Spannable userSpan = Utils.createProfileSpan(context, 0, username.length(), username, new SpannableString(username+": "));
 

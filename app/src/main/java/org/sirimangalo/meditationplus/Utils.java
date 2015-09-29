@@ -54,16 +54,11 @@ public class Utils {
         else if(ela < 60)
             time = ela + "s ago";
         else if(ela < 60*60)
-            time = (int) Math.floor(ela/60) + "m ago";
+            time = (int) Math.floor(ela/60) + "m";
         else if(ela < 60*60*24)
-            time = (int) Math.floor(ela/60/60) + "h ago";
-        else if(ela < 60*60*24*7)
-            time = (int) Math.floor(ela/60/60/24) + "d ago";
-        else {
-            Date date = new Date(then*1000);
-            DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT);
-            time = df.format(new Date(0));
-        }
+            time = (int) Math.floor(ela/60/60) + "h";
+        else
+            time = (int) Math.floor(ela/60/60/24) + "d";
         return time;
     }
 
@@ -92,7 +87,6 @@ public class Utils {
             }
 
         }
-
 
         return span;
     }
